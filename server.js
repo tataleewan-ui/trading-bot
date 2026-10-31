@@ -15,10 +15,49 @@ const API_KEY = process.env.TWELVE_DATA_API_KEY || '480e1387e8fe4675b44e831a47a9
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '9089609371:AAFyPRrun1KIafdD3J1ii2WmymjxJrTFR-E';
 let CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
-// 1) 5 สินทรัพย์หลักสำหรับเทรดสั้น M15
+// 1) 5 สินทรัพย์หลักสำหรับเทรดสั้นแท่ง 15 นาที
 const M15_SYMBOLS = ['XAU/USD', 'QQQ', 'NVDA', 'AAPL', 'SPY'];
 
-// 2) ข้อมูลพอร์ตจริงของผู้ใช้ (11 ตัวจากแอป Dime!)
+// 2) คลังหุ้นสหรัฐฯ 35 ตัวแทนทุกอุตสาหกรรม (Broad Market Screener)
+const BROAD_MARKET_UNIVERSE = [
+  { symbol: 'NVDA', name: 'NVIDIA Corp', yahoo: 'NVDA', sector: 'AI & Semiconductor', category: 'TECH' },
+  { symbol: 'AMD', name: 'Advanced Micro Devices', yahoo: 'AMD', sector: 'AI & Semiconductor', category: 'TECH' },
+  { symbol: 'AVGO', name: 'Broadcom Inc', yahoo: 'AVGO', sector: 'AI & Semiconductor', category: 'TECH' },
+  { symbol: 'TSM', name: 'Taiwan Semiconductor', yahoo: 'TSM', sector: 'AI & Semiconductor', category: 'TECH' },
+  { symbol: 'QCOM', name: 'Qualcomm Inc', yahoo: 'QCOM', sector: 'AI & Semiconductor', category: 'TECH' },
+  { symbol: 'AAPL', name: 'Apple Inc', yahoo: 'AAPL', sector: 'Big Tech', category: 'BLUECHIP' },
+  { symbol: 'MSFT', name: 'Microsoft Corp', yahoo: 'MSFT', sector: 'Big Tech', category: 'BLUECHIP' },
+  { symbol: 'AMZN', name: 'Amazon.com', yahoo: 'AMZN', sector: 'Big Tech', category: 'TECH' },
+  { symbol: 'GOOGL', name: 'Alphabet Google', yahoo: 'GOOGL', sector: 'Big Tech', category: 'BLUECHIP' },
+  { symbol: 'META', name: 'Meta Platforms', yahoo: 'META', sector: 'Big Tech', category: 'TECH' },
+  { symbol: 'TSLA', name: 'Tesla Inc', yahoo: 'TSLA', sector: 'EV & Tech', category: 'TECH' },
+  { symbol: 'NFLX', name: 'Netflix Inc', yahoo: 'NFLX', sector: 'Big Tech', category: 'TECH' },
+  { symbol: 'PLTR', name: 'Palantir Technologies', yahoo: 'PLTR', sector: 'Software & AI', category: 'TECH' },
+  { symbol: 'CRM', name: 'Salesforce Inc', yahoo: 'CRM', sector: 'Software & AI', category: 'TECH' },
+  { symbol: 'ADBE', name: 'Adobe Inc', yahoo: 'ADBE', sector: 'Software & AI', category: 'TECH' },
+  { symbol: 'JPM', name: 'JPMorgan Chase', yahoo: 'JPM', sector: 'Finance & Banking', category: 'BLUECHIP' },
+  { symbol: 'BAC', name: 'Bank of America', yahoo: 'BAC', sector: 'Finance & Banking', category: 'BLUECHIP' },
+  { symbol: 'V', name: 'Visa Inc', yahoo: 'V', sector: 'Finance & Banking', category: 'BLUECHIP' },
+  { symbol: 'MA', name: 'Mastercard Inc', yahoo: 'MA', sector: 'Finance & Banking', category: 'BLUECHIP' },
+  { symbol: 'LLY', name: 'Eli Lilly and Co (ยาลดน้ำหนัก)', yahoo: 'LLY', sector: 'Healthcare', category: 'BLUECHIP' },
+  { symbol: 'NVO', name: 'Novo Nordisk (Ozempic)', yahoo: 'NVO', sector: 'Healthcare', category: 'BLUECHIP' },
+  { symbol: 'JNJ', name: 'Johnson & Johnson', yahoo: 'JNJ', sector: 'Healthcare', category: 'BLUECHIP' },
+  { symbol: 'UNH', name: 'UnitedHealth Group', yahoo: 'UNH', sector: 'Healthcare', category: 'BLUECHIP' },
+  { symbol: 'WMT', name: 'Walmart Inc', yahoo: 'WMT', sector: 'Consumer & Retail', category: 'BLUECHIP' },
+  { symbol: 'COST', name: 'Costco Wholesale', yahoo: 'COST', sector: 'Consumer & Retail', category: 'BLUECHIP' },
+  { symbol: 'KO', name: 'Coca-Cola Company', yahoo: 'KO', sector: 'Consumer & Retail', category: 'BLUECHIP' },
+  { symbol: 'MCD', name: "McDonald's Corp", yahoo: 'MCD', sector: 'Consumer & Retail', category: 'BLUECHIP' },
+  { symbol: 'XOM', name: 'Exxon Mobil Corp', yahoo: 'XOM', sector: 'Energy & Industrial', category: 'BLUECHIP' },
+  { symbol: 'CVX', name: 'Chevron Corp', yahoo: 'CVX', sector: 'Energy & Industrial', category: 'BLUECHIP' },
+  { symbol: 'CAT', name: 'Caterpillar Inc', yahoo: 'CAT', sector: 'Energy & Industrial', category: 'BLUECHIP' },
+  { symbol: 'BA', name: 'Boeing Co', yahoo: 'BA', sector: 'Energy & Industrial', category: 'TECH' },
+  { symbol: 'QQQ', name: 'Invesco NASDAQ 100 ETF', yahoo: 'QQQ', sector: 'Index ETF', category: 'BLUECHIP' },
+  { symbol: 'SPY', name: 'SPDR S&P 500 ETF', yahoo: 'SPY', sector: 'Index ETF', category: 'BLUECHIP' },
+  { symbol: 'XAU/USD', name: 'Gold (ทองคำแท่ง)', yahoo: 'GC=F', sector: 'Precious Metals', category: 'BLUECHIP' },
+  { symbol: 'BTC/USD', name: 'Bitcoin (คริปโต)', yahoo: 'BTC-USD', sector: 'Crypto', category: 'TECH' }
+];
+
+// 3) ข้อมูลพอร์ตจริงของผู้ใช้ (11 ตัวจากแอป Dime!)
 let userHoldings = [
   { id: 'voo', symbol: 'VOO', name: 'Vanguard S&P 500 ETF', shares: 0.0470292, avgCostUSD: 655.55, category: 'หุ้นหลัก', currency: 'USD' },
   { id: 'ttb', symbol: 'TTB', name: 'ธนาคารทหารไทยธนชาต', shares: 162, avgCostTHB: 1.9222, category: 'หุ้นหลัก', currency: 'THB' },
@@ -57,13 +96,49 @@ let sentCandlesCache = {};
 let lastAlertTimestampPerTicker = {};
 let marketRadar = {};
 let latestPlanBySymbol = {};
+let broadMarketCache = [];
 let lastPortfolioData = null;
 let lastScanTime = null;
+let lastBroadScanTime = null;
 let telegramEnabled = true;
 let lastTelegramUpdateId = 0;
 
+let livePriceCache = {
+  'XAU/USD': 2785.40,
+  'YLG-GOLD': 2785.40,
+  'VOO': 535.20,
+  'AMD': 156.40,
+  'TSLA': 260.10,
+  'XLV': 148.50,
+  'VT': 118.20,
+  'BIDU': 88.50,
+  'XOM': 119.30,
+  'TTB': 1.95,
+  'NVDA': 141.20,
+  'AAPL': 230.10,
+  'QQQ': 495.20,
+  'SPY': 580.40,
+  'SCBT70X': 11.95,
+  'SCBTB': 10.35
+};
+
+wss.on('connection', (ws) => {
+  try {
+    ws.send(JSON.stringify({
+      type: 'INIT_STATE',
+      prices: livePriceCache,
+      radar: marketRadar,
+      plans: latestPlanBySymbol,
+      portfolio: lastPortfolioData,
+      broad: broadMarketCache,
+      lastScanTime: lastScanTime,
+      timestamp: Date.now()
+    }));
+  } catch (e) {}
+});
+
 // ==========================================
-// 1. ตรวจสอบเวลาตลาดเปิด-ปิดจริง
+// 1. ตรวจสอบเวลาตลาดเปิด-ปิดจริง 100%
 // ==========================================
 function isMarketOpen(symbol) {
   const now = new Date();
@@ -77,6 +152,7 @@ function isMarketOpen(symbol) {
     if (utcMins >= 21 * 60 && utcMins < 22 * 60) return false;
     return true;
   }
+  if (symbol === 'BTC/USD') return true;
 
   if (symbol === 'TTB' || symbol.includes('SCB')) {
     if (day === 0 || day === 6) return false;
@@ -140,7 +216,7 @@ function calculateRSI(prices, period = 14) {
 }
 
 // ==========================================
-// 3. ระบบส่งข้อความ Telegram
+// 3. ระบบส่ง Telegram
 // ==========================================
 async function resolveTelegramChatId() {
   if (CHAT_ID) return CHAT_ID;
@@ -190,42 +266,8 @@ function broadcast(payload) {
 }
 
 // ==========================================
-// 4. ดึงข้อมูลราคา Real-Time จริง
+// 4. ดึงราคา Real-Time จริงจากตลาดโลก
 // ==========================================
-async function fetchDailyStockData(yahooTicker) {
-  try {
-    const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yahooTicker) + '?interval=1d&range=6mo';
-    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    const data = await res.json();
-    const result = data && data.chart && data.chart.result && data.chart.result[0];
-    if (result && result.timestamp && result.indicators && result.indicators.quote && result.indicators.quote[0]) {
-      const ts = result.timestamp;
-      const q = result.indicators.quote[0];
-      const meta = result.meta || {};
-      const livePrice = meta.regularMarketPrice || meta.chartPreviousClose;
-      const prevClose = meta.chartPreviousClose || meta.previousClose || livePrice;
-      const changePct = prevClose ? Number((((livePrice - prevClose) / prevClose) * 100).toFixed(2)) : 0;
-
-      let candles = [];
-      for (let i = 0; i < ts.length; i++) {
-        if (q.open[i] != null && q.high[i] != null && q.low[i] != null && q.close[i] != null) {
-          candles.push({
-            date: new Date(ts[i] * 1000).toISOString().slice(0, 10),
-            open: Number(q.open[i]),
-            high: Number(q.high[i]),
-            low: Number(q.low[i]),
-            close: Number(q.close[i])
-          });
-        }
-      }
-      return { candles: candles, livePrice: Number(livePrice.toFixed(2)), changePct: changePct };
-    }
-  } catch (e) {
-    console.warn('Daily candles error for ' + yahooTicker, e.message);
-  }
-  return null;
-}
-
 async function fetchM15Candles(sym) {
   if (sym === 'XAU/USD') {
     try {
@@ -275,82 +317,226 @@ async function fetchM15Candles(sym) {
   return [];
 }
 
-// ==========================================
-// 5. คาดเดากราฟหุ้นในพอร์ต (AI Chart Forecast)
-// ==========================================
-async function forecastSingleStock(sym) {
-  const yahooSym = YAHOO_MAP[sym] || sym;
-  let candles = [];
-  let curPrice = 0;
+async function fetchDailyStockData(yahooTicker) {
+  try {
+    const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yahooTicker) + '?interval=1d&range=6mo';
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const data = await res.json();
+    const result = data && data.chart && data.chart.result && data.chart.result[0];
+    if (result && result.timestamp && result.indicators && result.indicators.quote && result.indicators.quote[0]) {
+      const ts = result.timestamp;
+      const q = result.indicators.quote[0];
+      const meta = result.meta || {};
+      const livePrice = meta.regularMarketPrice || meta.chartPreviousClose;
+      const prevClose = meta.chartPreviousClose || meta.previousClose || livePrice;
+      const changePct = prevClose ? Number((((livePrice - prevClose) / prevClose) * 100).toFixed(2)) : 0;
 
-  if (sym === 'YLG-GOLD' || sym === 'XAU/USD') {
-    candles = await fetchM15Candles('XAU/USD');
-    if (candles.length > 0) curPrice = candles[candles.length - 1].close;
-  } else {
-    const d = await fetchDailyStockData(yahooSym);
-    if (d && d.candles) {
-      candles = d.candles;
-      curPrice = d.livePrice;
+      let candles = [];
+      for (let i = 0; i < ts.length; i++) {
+        if (q.open[i] != null && q.high[i] != null && q.low[i] != null && q.close[i] != null) {
+          candles.push({
+            date: new Date(ts[i] * 1000).toISOString().slice(0, 10),
+            open: Number(q.open[i]),
+            high: Number(q.high[i]),
+            low: Number(q.low[i]),
+            close: Number(q.close[i])
+          });
+        }
+      }
+      return { candles: candles, livePrice: Number(livePrice.toFixed(2)), changePct: changePct };
     }
+  } catch (e) {
+    console.warn('Daily candles error for ' + yahooTicker, e.message);
   }
-
-  if (candles.length < 30) return null;
-
-  const closes = candles.map(c => c.close);
-  const ema21 = calculateEMA(closes, 21);
-  const ema50 = calculateEMA(closes, 50);
-  const rsi = calculateRSI(closes, 14);
-
-  const last = closes.length - 1;
-  const cEMA21 = ema21[last];
-  const cEMA50 = ema50[last];
-  const cPrice = curPrice || closes[last];
-
-  let direction = 'SIDEWAY';
-  let dirIcon = '⚪';
-  let forecastTitle = 'แกว่งตัวในกรอบ (Sideway)';
-  let confidence = 'ปานกลาง';
-  let keyLevel = cEMA50.toFixed(2);
-  let rationale = '';
-
-  if (cPrice > cEMA50 && cEMA21 >= cEMA50 && rsi >= 48) {
-    direction = 'UP';
-    dirIcon = '🟢';
-    forecastTitle = 'มีโอกาสขึ้นต่อ (Bullish Trend)';
-    confidence = rsi >= 52 && rsi <= 65 ? 'สูงมาก (90%)' : 'สูง (80%)';
-    rationale = 'ราคายืนเหนือเส้น 50 วันและ 21 วัน พร้อมแรงส่ง RSI ' + rsi.toFixed(0) + ' แข็งแกร่ง';
-  } else if (cPrice < cEMA50 && cEMA21 <= cEMA50 && rsi <= 50) {
-    direction = 'DOWN';
-    dirIcon = '🔴';
-    forecastTitle = 'มีโอกาสพักตัว/ลงต่อ (Bearish Trend)';
-    confidence = rsi <= 40 ? 'สูง (80%)' : 'ปานกลาง';
-    rationale = 'ราคาหลุดใต้เส้น 50 วัน และแรงซื้ออ่อนแรง (RSI ' + rsi.toFixed(0) + ')';
-  } else if (rsi < 35) {
-    direction = 'REBOUND';
-    dirIcon = '🟢';
-    forecastTitle = 'ลุ้นดีดตัวกลับระยะสั้น (Oversold Bounce)';
-    confidence = 'ปานกลาง-สูง (75%)';
-    rationale = 'RSI เข้าโซนขายมากเกินไป (' + rsi.toFixed(0) + ') มักเกิดการเด้งสั้น';
-  } else {
-    rationale = 'ราคาพักตัวในกรอบแนวรับ-แนวต้าน รอยืนยันทิศทาง';
-  }
-
-  return {
-    symbol: sym,
-    price: cPrice,
-    direction: direction,
-    dirIcon: dirIcon,
-    forecastTitle: forecastTitle,
-    confidence: confidence,
-    rsi: Number(rsi.toFixed(0)),
-    keyLevel: keyLevel,
-    rationale: rationale
-  };
+  return null;
 }
 
 // ==========================================
-// 6. ระบบวิเคราะห์และตรวจสุขภาพพอร์ตจริง (AI Portfolio Doctor)
+// 5. วิเคราะห์ Quant หุ้นก้นหลุมรอบเดือน & หุ้นน่าซื้อ
 // ==========================================
+function evaluateStockQuant(candles, livePrice, changePct, symbol, name, sector, category) {
+  if (!candles || candles.length < 40) return null;
+  const closes = candles.map(c => c.close);
+  const highs = candles.map(c => c.high);
+  const lows = candles.map(c => c.low);
+
+  const curPrice = livePrice || closes[closes.length - 1];
+  const ema50 = calculateEMA(closes, 50);
+  const ema200 = closes.length >= 200 ? calculateEMA(closes, 200) : calculateEMA(closes, closes.length);
+  const rsi = calculateRSI(closes, 14);
+  const atr = calculateATR(candles, 14);
+
+  const last = closes.length - 1;
+  const curEMA50 = ema50[last];
+  const curEMA200 = ema200[last];
+
+  const monthBars = candles.slice(-22);
+  const monthlyHigh = Math.max(...monthBars.map(b => b.high));
+  const monthlyLow = Math.min(...monthBars.map(b => b.low));
+  const dipFromHighPct = Number((((monthlyHigh - curPrice) / monthlyHigh) * 100).toFixed(1));
+  const distFromLowPct = Number((((curPrice - monthlyLow) / monthlyLow) * 100).toFixed(1));
+
+  let score = 40;
+  let reasons = [];
+
+  if (curPrice > curEMA200 && curEMA50 >= curEMA200) {
+    score += 25;
+    reasons.push('เทรนด์ใหญ่ Super Trend ขาขึ้น (50 วันเหนือ 200 วัน)');
+  }
+  if (curPrice >= curEMA50) {
+    score += 10;
+    reasons.push('ราคายืนเหนือเส้น 50 วัน');
+  }
+  if (distFromLowPct <= 3.5 && dipFromHighPct >= 4.0) {
+    score += 25;
+    reasons.push('🔥 ราคาแตะโซนต่ำสุดรอบเดือน (ห่างก้นหลุม +' + distFromLowPct + '%)');
+  } else if (distFromLowPct <= 7.0) {
+    score += 15;
+    reasons.push('ย่อตัวใกล้ฐานแนวรับรอบเดือน');
+  }
+  if (rsi >= 38 && rsi <= 52) {
+    score += 20;
+    reasons.push('RSI (' + rsi.toFixed(0) + ') โซนสะสมพลัง Golden Dip');
+  }
+
+  let verdict = 'HOLD';
+  let badgeText = '⚪ ถือ / รอย่อตัว';
+  let verdictClass = 'bg-slate-800 text-slate-300';
+  let isDipDeal = false;
+
+  const buyZoneLow = Number(Math.max(monthlyLow, curPrice - atr * 0.7).toFixed(2));
+  const buyZoneHigh = Number(curPrice.toFixed(2));
+  const slPrice = Number((Math.min(monthlyLow, curPrice) - atr * 1.5).toFixed(2));
+  const tp1Price = Number((curPrice + atr * 2.2).toFixed(2));
+  const tp2Price = Number((curPrice + atr * 4.2).toFixed(2));
+  const upsidePercent = Number((((tp2Price - curPrice) / curPrice) * 100).toFixed(1));
+
+  if (distFromLowPct <= 4.0 && score >= 70) {
+    verdict = 'BUY_NOW';
+    badgeText = '🛒 ก้นหลุมรอบเดือน (Golden Dip)';
+    verdictClass = 'bg-emerald-500 text-slate-950 font-black animate-pulse';
+    isDipDeal = true;
+  } else if (distFromLowPct <= 7.0 && score >= 60) {
+    verdict = 'BUY_DIP';
+    badgeText = '🟢 ทยอยเข้าซื้อ (Buy on Dip)';
+    verdictClass = 'bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40';
+  } else if (rsi >= 68 || curPrice >= tp1Price) {
+    verdict = 'TAKE_PROFIT';
+    badgeText = '🎯 โซนรอขายทำกำไร (Take Profit)';
+    verdictClass = 'bg-amber-500 text-slate-950 font-black';
+  }
+
+  return {
+    symbol: symbol,
+    name: name || symbol,
+    sector: sector || 'US Market',
+    category: category || 'TECH',
+    price: curPrice,
+    changePct: changePct,
+    monthlyLow: monthlyLow,
+    monthlyHigh: monthlyHigh,
+    distFromLowPct: distFromLowPct,
+    score: Math.min(99, Math.max(30, score)),
+    verdict: verdict,
+    badgeText: badgeText,
+    verdictClass: verdictClass,
+    isDipDeal: isDipDeal,
+    buyZone: buyZoneLow + ' - ' + buyZoneHigh,
+    sl: slPrice,
+    tp1: tp1Price,
+    tp2: tp2Price,
+    upside: upsidePercent,
+    reason: reasons.join(' • ')
+  };
+}
+
+async function scanBroadMarketUniverse() {
+  let list = [];
+  for (const item of BROAD_MARKET_UNIVERSE) {
+    try {
+      const data = await fetchDailyStockData(item.yahoo);
+      if (data && data.candles) {
+        let price = data.livePrice;
+        if (item.symbol === 'XAU/USD') {
+          try {
+            const bPrice = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT').then(r => r.json());
+            if (bPrice && bPrice.price) price = parseFloat(bPrice.price);
+          } catch (e) {}
+        }
+        const res = evaluateStockQuant(data.candles, price, data.changePct, item.symbol, item.name, item.sector, item.category);
+        if (res) list.push(res);
+      }
+    } catch (e) {}
+  }
+  list.sort((a, b) => b.score - a.score);
+  broadMarketCache = list;
+  lastBroadScanTime = new Date().toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' });
+  return list;
+}
+
+// ==========================================
+// 6. วิเคราะห์พอร์ตของคุณ (AI Portfolio Doctor)
+// ==========================================
+async function updateLiveQuotes() {
+  // 1. ดึงราคาทองคำ Spot Gold Real-Time จาก Binance (PAXGUSDT)
+  try {
+    const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
+    const d = await res.json();
+    if (d && d.price) {
+      const p = parseFloat(d.price);
+      livePriceCache['XAU/USD'] = p;
+      livePriceCache['YLG-GOLD'] = p;
+      if (latestPlanBySymbol['XAU/USD']) latestPlanBySymbol['XAU/USD'].entry = p;
+      if (marketRadar['XAU/USD']) marketRadar['XAU/USD'].price = p;
+    }
+  } catch (e) {}
+
+  // 2. ดึงราคาหุ้นสหรัฐฯ และ ETF จาก Yahoo Finance
+  const tickers = ['VOO', 'AMD', 'TSLA', 'XLV', 'VT', 'BIDU', 'XOM', 'NVDA', 'AAPL', 'QQQ', 'SPY'];
+  try {
+    const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + tickers.join(',');
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const data = await res.json();
+    if (data && data.quoteResponse && Array.isArray(data.quoteResponse.result)) {
+      for (const q of data.quoteResponse.result) {
+        const p = q.regularMarketPrice || q.postMarketPrice || q.preMarketPrice;
+        if (p && q.symbol) {
+          livePriceCache[q.symbol] = p;
+          if (latestPlanBySymbol[q.symbol]) latestPlanBySymbol[q.symbol].entry = p;
+          if (marketRadar[q.symbol]) marketRadar[q.symbol].price = p;
+        }
+      }
+    }
+  } catch (e) {
+    await Promise.all(tickers.slice(0, 6).map(async (t) => {
+      try {
+        const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + t + '?interval=1m&range=1d', { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const d = await r.json();
+        const p = d?.chart?.result?.[0]?.meta?.regularMarketPrice;
+        if (p) {
+          livePriceCache[t] = p;
+          if (latestPlanBySymbol[t]) latestPlanBySymbol[t].entry = p;
+          if (marketRadar[t]) marketRadar[t].price = p;
+        }
+      } catch (err) {}
+    }));
+  }
+
+  // 3. คำนวณพอร์ตแบบทันที
+  const pf = await analyzeUserPortfolio();
+
+  // 4. สตรีมข้อมูล Real-Time ไปยังทุกไคลเอนต์ผ่าน WebSocket
+  broadcast({
+    type: 'TICK',
+    prices: livePriceCache,
+    radar: marketRadar,
+    plans: latestPlanBySymbol,
+    portfolio: pf,
+    lastScanTime: new Date().toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' }),
+    timestamp: Date.now()
+  });
+}
+
 async function analyzeUserPortfolio() {
   const USD_TO_THB = 33.42;
   let diagnosedList = [];
@@ -359,16 +545,21 @@ async function analyzeUserPortfolio() {
 
   for (let item of userHoldings) {
     let currentPrice = item.currency === 'USD' ? item.avgCostUSD : item.avgCostTHB;
-    const yahooSym = YAHOO_MAP[item.symbol];
-
-    if (item.symbol === 'YLG-GOLD') {
-      try {
-        const bPrice = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT').then(r => r.json());
-        if (bPrice && bPrice.price) currentPrice = parseFloat(bPrice.price);
-      } catch (e) {}
-    } else if (yahooSym) {
-      const d = await fetchDailyStockData(yahooSym);
-      if (d && d.livePrice) currentPrice = d.livePrice;
+    if (livePriceCache[item.symbol]) {
+      currentPrice = livePriceCache[item.symbol];
+    } else if (item.symbol === 'YLG-GOLD' && livePriceCache['XAU/USD']) {
+      currentPrice = livePriceCache['XAU/USD'];
+    } else {
+      const yahooSym = YAHOO_MAP[item.symbol];
+      if (item.symbol === 'YLG-GOLD') {
+        try {
+          const bPrice = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT').then(r => r.json());
+          if (bPrice && bPrice.price) currentPrice = parseFloat(bPrice.price);
+        } catch (e) {}
+      } else if (yahooSym) {
+        const d = await fetchDailyStockData(yahooSym);
+        if (d && d.livePrice) currentPrice = d.livePrice;
+      }
     }
 
     let valueTHB = 0, costTHB = 0;
@@ -410,7 +601,6 @@ async function analyzeUserPortfolio() {
       healthStatus = 'WATCH';
       actionVerdict = 'HOLD_OR_SWITCH';
       advice = '⚠️ กองทุนหุ้นไทย ESG ขาดทุน -4.8%';
-      advice = 'หากเด้งขึ้นมาเท่าทุน พิจารณาย้ายเงินไปใส่ VOO';
     } else {
       healthStatus = 'NEUTRAL';
       actionVerdict = 'HOLD';
@@ -439,11 +629,18 @@ async function analyzeUserPortfolio() {
   const totalProfitTHB = totalValueTHB - totalCostTHB;
   const totalProfitPct = totalCostTHB > 0 ? (totalProfitTHB / totalCostTHB) * 100 : 0;
 
+  // คำนวณคะแนนสุขภาพพอร์ต (Portfolio Health Score 0-100)
+  let healthScore = 80;
+  if (totalProfitPct > 0) healthScore += 10;
+  if (userHoldings.some(h => h.symbol === 'BIDU')) healthScore -= 10; // ลดเพราะมีตัวฉุด
+  if (userHoldings.some(h => h.symbol === 'VOO')) healthScore += 10; // เพิ่มเพราะมี VOO
+
   lastPortfolioData = {
     totalValueTHB: Number(totalValueTHB.toFixed(2)),
     totalCostTHB: Number(totalCostTHB.toFixed(2)),
     totalProfitTHB: Number(totalProfitTHB.toFixed(2)),
     totalProfitPct: Number(totalProfitPct.toFixed(2)),
+    healthScore: Math.min(100, Math.max(50, healthScore)),
     holdings: diagnosedList,
     updatedAt: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   };
@@ -451,7 +648,7 @@ async function analyzeUserPortfolio() {
 }
 
 // ==========================================
-// 7. บอท Telegram คุยตอบโต้ได้ 24/7 (Interactive Telegram Bot)
+// 7. บอท Telegram คุยตอบโต้ได้ 24/7
 // ==========================================
 async function pollTelegramUpdates() {
   if (!BOT_TOKEN) return;
@@ -475,59 +672,23 @@ async function pollTelegramUpdates() {
           let reply = '💼 <b>สรุปพอร์ต Dime ของคุณแบบ Real-Time</b>\n';
           reply += '──────────────────\n';
           reply += '💰 มูลค่าพอร์ตรวม: <b>฿' + pf.totalValueTHB.toLocaleString() + '</b>\n';
-          reply += '💵 ต้นทุนรวม: ฿' + pf.totalCostTHB.toLocaleString() + '\n';
           reply += '📈 กำไรสุทธิ: <b>' + sign + '฿' + pf.totalProfitTHB.toLocaleString() + ' (' + sign + pf.totalProfitPct + '%)</b>\n';
-          reply += '──────────────────\n';
-          pf.holdings.forEach(h => {
-            const hSign = h.profitTHB >= 0 ? '+' : '';
-            reply += '• <b>' + h.symbol + ':</b> ' + (h.currency === 'USD' ? '$' : '฿') + h.currentPrice + ' (' + hSign + h.profitPct + '%)\n';
-          });
+          reply += '🩺 คะแนนสุขภาพพอร์ต: <b>' + pf.healthScore + '/100</b>\n';
           reply += '──────────────────\n';
           reply += '⭐ <b>วันนี้แนะนำซื้อ:</b> <code>VOO</code> (เสาหลักโตสม่ำเสมอ)\n';
           reply += '🚨 <b>น่าเป็นห่วง:</b> <code>BIDU</code> (ขาดทุน -22% แนะนำ Cut Loss)';
           await sendTelegramMessage(reply, true, chatId);
-        } else if (text === '/forecast' || text === 'ทิศทาง' || text === 'วิเคราะห์' || text === 'กราฟ') {
-          let reply = '📊 <b>ผลคาดเดาทิศทางกราฟหุ้นในพอร์ตของคุณ (AI Chart Forecast)</b>\n';
-          reply += 'วิเคราะห์จาก Price Action + EMA 50/200 + RSI ล่าสุด\n';
+        } else if (text === '/screener' || text === 'หุ้นไหนดี' || text === 'หุ้นเด่น') {
+          if (broadMarketCache.length === 0) await scanBroadMarketUniverse();
+          const top3 = broadMarketCache.slice(0, 3);
+          let reply = '🌟 <b>3 หุ้นเด่นน่าซื้อที่สุดในตลาด (สแกนจากหลังบ้าน)</b>\n';
           reply += '──────────────────\n';
-          const targetStocks = ['VOO', 'AMD', 'TSLA', 'BIDU', 'TTB'];
-          for (const s of targetStocks) {
-            const fc = await forecastSingleStock(s);
-            if (fc) {
-              reply += fc.dirIcon + ' <b>' + fc.symbol + ' ($' + fc.price + '):</b> ' + fc.forecastTitle + '\n';
-              reply += '   ความมั่นใจ: <b>' + fc.confidence + '</b> | แนวรับ/ต้าน: <code>' + fc.keyLevel + '</code>\n';
-              reply += '   💡 <i>' + fc.rationale + '</i>\n\n';
-            }
-          }
-          await sendTelegramMessage(reply, true, chatId);
-        } else if (['voo', 'amd', 'tsla', 'bidu', 'ttb', 'gold', 'xom', 'xlv', 'vt'].includes(text) || text.startsWith('/')) {
-          const cleanSym = text.replace('/', '').toUpperCase();
-          const sym = cleanSym === 'GOLD' ? 'YLG-GOLD' : cleanSym;
-          const pf = await analyzeUserPortfolio();
-          const item = pf.holdings.find(h => h.symbol.toUpperCase() === sym);
-          const fc = await forecastSingleStock(sym);
-
-          if (item) {
-            const pSign = item.profitTHB >= 0 ? '+' : '';
-            let reply = '🔍 <b>วิเคราะห์เจาะลึก: ' + item.symbol + ' (' + item.name + ')</b>\n';
-            reply += '──────────────────\n';
-            reply += '💵 ราคาตลาดสด: <b>' + (item.currency === 'USD' ? '$' : '฿') + item.currentPrice + '</b>\n';
-            reply += '📦 จำนวนที่คุณถือ: ' + item.shares + ' หุ้น (ต้นทุน: ' + (item.currency === 'USD' ? '$' : '฿') + item.avgCost + ')\n';
-            reply += '📈 กำไร/ขาดทุน: <b>' + pSign + '฿' + item.profitTHB + ' (' + pSign + item.profitPct + '%)</b>\n';
-            if (fc) {
-              reply += '🔮 คาดเดาทิศทางกราฟ: ' + fc.dirIcon + ' <b>' + fc.forecastTitle + '</b> (' + fc.confidence + ')\n';
-              reply += '💡 <i>' + fc.rationale + '</i>\n';
-            }
-            reply += '📌 คำแนะนำหมอพอร์ต: <b>' + item.advice + '</b>';
-            await sendTelegramMessage(reply, true, chatId);
-          }
-        } else if (text === '/help' || text === 'เมนู' || text === 'ช่วย') {
-          let reply = '🤖 <b>สวัสดีครับ! ผมคือบอทผู้ช่วยเทรดและดูแลพอร์ตของคุณ</b>\n\n';
-          reply += 'คุณสามารถพิมพ์ถามผมได้ตลอดเวลา เช่น:\n';
-          reply += '• พิมพ์ <b>พอร์ต</b> หรือ <b>/portfolio</b> -> ดูสรุปกำไรขาดทุนพอร์ตสด\n';
-          reply += '• พิมพ์ <b>ทิศทาง</b> หรือ <b>/forecast</b> -> คาดเดากราฟว่าหุ้นจะขึ้นหรือลง\n';
-          reply += '• พิมพ์ชื่อหุ้น เช่น <b>VOO</b>, <b>AMD</b>, <b>TSLA</b>, <b>BIDU</b> -> เจาะลึกหุ้นตัวนั้น\n';
-          reply += '• พิมพ์ <b>ข่าว</b> -> ดูสรุปผลกระทบข่าวเศรษฐกิจล่าสุด';
+          top3.forEach((item, i) => {
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+            reply += medal + ' <b>' + item.symbol + '</b> ($' + item.price + ')\n';
+            reply += '   สถานะ: <b>' + item.badgeText + '</b> (คะแนน ' + item.score + '/100)\n';
+            reply += '   🛒 ซื้อโซน: <code>$' + item.buyZone + '</code> | 🎯 เป้า: <code>$' + item.tp2 + '</code> (+~' + item.upside + '%)\n\n';
+          });
           await sendTelegramMessage(reply, true, chatId);
         }
       }
@@ -560,9 +721,6 @@ async function scanMarket() {
           ticker: sym,
           action: isBuy ? 'BUY' : 'SELL',
           strategy: isBuy ? 'สูตร 1: เกาะเทรนด์ขาขึ้น (M15 Trend Pullback)' : 'สูตร 1: เกาะเทรนด์ขาลง (M15 Trend Follow)',
-          reason: isBuy
-            ? 'ราคายืนเหนือ EMA 50 และ EMA 21 (RSI: ' + rsi.toFixed(0) + ') แนะนำโฟกัสฝั่ง BUY'
-            : 'ราคาอยู่ใต้ EMA 50 และ EMA 21 (RSI: ' + rsi.toFixed(0) + ') แนะนำโฟกัสฝั่ง SELL',
           entry: Number(curPrice.toFixed(2)),
           sl: Number((isBuy ? curPrice - slDist : curPrice + slDist).toFixed(2)),
           tp1: Number((isBuy ? curPrice + slDist * 1.5 : curPrice - slDist * 1.5).toFixed(2)),
@@ -597,6 +755,7 @@ async function scanMarket() {
     radar: marketRadar,
     plans: latestPlanBySymbol,
     portfolio: pf,
+    broad: broadMarketCache,
     lastScanTime: lastScanTime
   });
 }
@@ -609,47 +768,33 @@ app.get('/api/signals', (req, res) => res.json({
   radar: marketRadar,
   plans: latestPlanBySymbol,
   portfolio: lastPortfolioData,
+  broad: broadMarketCache,
   lastScanTime: lastScanTime
 }));
+
+app.get('/api/broad-market', async (req, res) => {
+  if (broadMarketCache.length === 0) await scanBroadMarketUniverse();
+  res.json({ updatedAt: lastBroadScanTime, stocks: broadMarketCache });
+});
+
+app.get('/api/analyze-stock', async (req, res) => {
+  const sym = (req.query.symbol || '').toUpperCase().trim();
+  if (!sym) return res.status(400).json({ error: 'กรุณาระบุชื่อย่อหุ้น' });
+  try {
+    const data = await fetchDailyStockData(sym);
+    if (!data || !data.candles || data.candles.length < 40) {
+      return res.status(404).json({ error: 'ไม่พบข้อมูลราคาหุ้น ' + sym });
+    }
+    const result = evaluateStockQuant(data.candles, data.livePrice, data.changePct, sym, sym + ' Inc', 'US Market', 'TECH');
+    res.json({ ok: true, stock: result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 app.get('/api/my-portfolio', async (req, res) => {
   const pf = await analyzeUserPortfolio();
   res.json(pf);
-});
-
-app.post('/api/send-news-flash', async (req, res) => {
-  const { title, actual, forecast, impact, analysis } = req.body;
-  let msg = '🚨 <b>รายงานด่วนผลกระทบข่าวเศรษฐกิจ (Market News Flash)</b>\n';
-  msg += '──────────────────\n';
-  msg += '📰 <b>ข่าว:</b> ' + (title || 'ตัวเลขเงินเฟ้อ CPI สหรัฐฯ') + '\n';
-  msg += '📊 ตัวเลขจริง: <b>' + (actual || '2.8%') + '</b> | คาดการณ์: ' + (forecast || '3.1%') + '\n';
-  msg += '💥 <b>ทิศทางตลาด:</b> ' + (impact || '🟢 หนุนทองคำและหุ้นพุ่งขึ้นแรง!') + '\n';
-  msg += '💡 <b>ทำไมตลาดถึงขึ้น/ลง:</b> <i>' + (analysis || 'เงินเฟ้อชะลอตัวลงเร็วกว่าคาด ตลาดคลายกังวลเรื่องดอกเบี้ย ดอลลาร์อ่อนค่าลงทันที') + '</i>\n';
-  msg += '──────────────────\n';
-  msg += '🎯 <b>คำแนะนำ:</b> รอย่อตัวเข้าตามน้ำ ห้ามกระโดดไล่ราคาตอนข่าวออกวินาทีแรก';
-
-  const ok = await sendTelegramMessage(msg, true);
-  res.json({ ok: ok });
-});
-
-app.post('/api/send-forecast-telegram', async (req, res) => {
-  let msg = '📊 <b>รายงานคาดเดาทิศทางกราฟหุ้นในพอร์ตของคุณ (ก่อนเปิดตลาด 20:15 น.)</b>\n';
-  msg += 'วิเคราะห์จาก Price Action + EMA 50/200 + RSI รายวัน\n';
-  msg += '──────────────────\n';
-
-  const targets = ['VOO', 'AMD', 'TSLA', 'BIDU', 'TTB'];
-  for (const s of targets) {
-    const fc = await forecastSingleStock(s);
-    if (fc) {
-      msg += fc.dirIcon + ' <b>' + fc.symbol + ' ($' + fc.price + '):</b> ' + fc.forecastTitle + '\n';
-      msg += '   ความมั่นใจ: <b>' + fc.confidence + '</b> | แนวรับ/ต้าน: <code>' + fc.keyLevel + '</code>\n';
-      msg += '   💡 <i>' + fc.rationale + '</i>\n\n';
-    }
-  }
-  msg += '💡 <i>วิเคราะห์อัตโนมัติจากกราฟจริง วางแผนเข้าซื้อตาม Money Management ครับ</i>';
-
-  const ok = await sendTelegramMessage(msg, true);
-  res.json({ ok: ok });
 });
 
 app.post('/api/update-holding', async (req, res) => {
@@ -668,10 +813,27 @@ app.post('/api/update-holding', async (req, res) => {
   res.json({ ok: true, portfolio: pf });
 });
 
+app.post('/api/send-broad-telegram', async (req, res) => {
+  if (broadMarketCache.length === 0) await scanBroadMarketUniverse();
+  const top4 = broadMarketCache.slice(0, 4);
+  let msg = '🌟 <b>สรุปอันดับหุ้นน่าช้อนซื้อที่สุดในตลาด (สแกนจากหลังบ้าน)</b>\n';
+  msg += '──────────────────\n';
+  top4.forEach((item, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ('#' + (i + 1));
+    msg += medal + ' <b>' + item.symbol + '</b> (คะแนน ' + item.score + '/100)\n';
+    msg += '📌 สถานะ: <b>' + item.badgeText + '</b> | ราคา: <code>$' + item.price + '</code>\n';
+    msg += '🛒 โซนควรเข้าซื้อ: <code>$' + item.buyZone + '</code>\n';
+    msg += '🎯 เป้าทำกำไร (TP2): <code>$' + item.tp2 + '</code> (+~' + item.upside + '%)\n';
+    msg += '🛑 Stop Loss: <code>$' + item.sl + '</code>\n\n';
+  });
+  const ok = await sendTelegramMessage(msg, true);
+  res.json({ ok: ok });
+});
+
 app.get('/api/ping', (req, res) => res.send('pong'));
 
 // ==========================================
-// 10. หน้าเว็บ Master Terminal ครบครัน
+// 10. หน้าเว็บ Master All-in-One Dashboard ครบ 3 แท็บใหญ่
 // ==========================================
 const HTML_PAGE = [
   '<!DOCTYPE html>',
@@ -685,8 +847,19 @@ const HTML_PAGE = [
   '    body { font-family: "Inter", sans-serif; background-color: #070a12; color: #f1f5f9; }',
   '    .copy-card { cursor: pointer; transition: all 0.15s ease; }',
   '    .copy-card:hover { transform: translateY(-2px); border-color: #38bdf8; }',
+  '    .copy-card:active { transform: scale(0.98); }',
   '    @keyframes pulse-subtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }',
   '    .pulse-live { animation: pulse-subtle 2s infinite; }',
+  '    @keyframes flashGreen {',
+  '      0% { background-color: rgba(16, 185, 129, 0.45); }',
+  '      100% { background-color: transparent; }',
+  '    }',
+  '    @keyframes flashRed {',
+  '      0% { background-color: rgba(244, 63, 94, 0.45); }',
+  '      100% { background-color: transparent; }',
+  '    }',
+  '    .flash-up { animation: flashGreen 0.9s ease-out; }',
+  '    .flash-down { animation: flashRed 0.9s ease-out; }',
   '  </style>',
   '</head>',
   '<body class="min-h-screen flex flex-col">',
@@ -696,152 +869,49 @@ const HTML_PAGE = [
   '        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-emerald-500 flex items-center justify-center font-black text-slate-950 text-xl shadow-lg">⚡</div>',
   '        <div>',
   '          <div class="flex items-center gap-2">',
-  '            <h1 class="font-bold text-base text-white">M15 Trading Terminal & Portfolio Doctor</h1>',
+  '            <h1 class="font-bold text-base text-white">M15 Trading Assistant & Stock Doctor</h1>',
   '            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-bold border border-emerald-500/30 flex items-center gap-1">',
-  '              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-live"></span> พอร์ตอัปเดตสด Real-Time',
+  '              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-live"></span> REALTIME LIVE',
   '            </span>',
   '          </div>',
-  '          <p class="text-xs text-slate-400">บอท Telegram ตอบโต้ได้ 24/7 + คาดเดากราฟหุ้น + วิเคราะห์ผลกระทบข่าวสด</p>',
+  '          <p class="text-xs text-slate-400">บอกจุดเข้า BUY/SELL สด, ตรวจสุขภาพพอร์ต Dime, และสแกนหุ้นเด่นทั้งตลาด</p>',
   '        </div>',
   '      </div>',
+  '      <!-- World Clock & Live Realtime Status Widget -->',
   '      <div class="flex items-center flex-wrap gap-2 text-xs">',
-  '        <button id="send-forecast-btn" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black px-3.5 py-1.5 rounded-lg shadow transition">',
-  '          🔮 ส่งคาดเดากราฟเข้า Telegram',
-  '        </button>',
-  '        <button id="test-news-btn" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-3 py-1.5 rounded-lg shadow transition">',
-  '          🚨 จำลองข่าวด่วนเข้า Telegram',
-  '        </button>',
-  '      </div>',
+  '        <div class="bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2">',
+  '          <span class="text-slate-400">ตลาดโลก:</span>',
+  '          <span id="session-bkk" class="text-emerald-400 font-bold">🇹🇭 ไทย: รอเวลา...</span>',
+  '          <span class="text-slate-600">|</span>',
+  '          <span id="session-us" class="text-amber-400 font-bold">🇺🇸 สหรัฐฯ: รอเวลา...</span>',
+  '        </div>',
+  '        <div id="ws-badge" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-bold">',
+  '          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>',
+  '          <span id="ws-text">🔴 เรียลไทม์สด (Live Connected)</span>',
+  '        </div>',
+  '        <div class="bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700 text-slate-400 font-mono text-[11px]">',
+  '          อัปเดตสด: <span id="live-timer" class="text-emerald-400 font-bold">0s</span> ที่แล้ว',
+  '        </div>',
+  '        <button id="voice-btn" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700">🗣️ เสียง: เปิด</button>',
   '    </div>',
   '  </header>',
   '',
   '  <main class="max-w-7xl mx-auto w-full p-4 flex-1 flex flex-col gap-5">',
-  '    <!-- Tab Switcher -->',
+  '    <!-- 3 Master Tabs -->',
   '    <div class="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">',
-  '      <button id="tab-btn-portfolio" onclick="switchTab(\'portfolio\')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-purple-600 text-white shadow-md">',
-  '        💼 พอร์ตของคุณ 11 ตัว (ราคา & กำไรขยับสด Real-Time)',
+  '      <button id="tab-btn-m15" onclick="switchMasterTab(\'m15\')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md">',
+  '        ⚡ หน้าเทรดหลักแท่ง 15 นาที (M15 Terminal)',
   '      </button>',
-  '      <button id="tab-btn-m15" onclick="switchTab(\'m15\')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">',
-  '        ⚡ หน้าเทรดทองคำ & หุ้น M15 (จุดเข้า SL/TP)',
+  '      <button id="tab-btn-portfolio" onclick="switchMasterTab(\'portfolio\')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">',
+  '        💼 พอร์ตของคุณ 11 ตัว (Dime Doctor & Health Check)',
+  '      </button>',
+  '      <button id="tab-btn-broad" onclick="switchMasterTab(\'broad\')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">',
+  '        🌟 หน้าหุ้นไหนดี & ค้นหาหุ้นทุกตัว (Stock Screener)',
   '      </button>',
   '    </div>',
   '',
-  '    <!-- TAB 1: PERSONAL PORTFOLIO DOCTOR (ราคา & กำไรขยับสด!) -->',
-  '    <div id="view-portfolio" class="flex flex-col gap-5">',
-  '      <!-- Telegram Interactive Instructions Box -->',
-  '      <div class="bg-gradient-to-r from-purple-900/30 via-slate-900 to-sky-900/30 border border-purple-500/40 rounded-2xl p-4 text-xs flex flex-wrap items-center justify-between gap-3">',
-  '        <div>',
-  '          <span class="font-bold text-amber-400 text-sm block">💬 บอท Telegram ของคุณสามารถคุยตอบโต้ได้แล้ว 24/7!</span>',
-  '          <p class="text-slate-300 mt-1">ลองหยิบมือถือเปิด Telegram แล้วพิมพ์คำสั่งเหล่านี้ทักแชทบอทดูได้เลย:</p>',
-  '          <div class="flex flex-wrap gap-2 mt-2">',
-  '            <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-700 text-white font-mono">/portfolio หรือ พอร์ต</span>',
-  '            <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-700 text-white font-mono">/forecast หรือ ทิศทาง</span>',
-  '            <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-700 text-emerald-300 font-mono">VOO</span>',
-  '            <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-700 text-sky-300 font-mono">AMD</span>',
-  '            <span class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-700 text-rose-300 font-mono">BIDU</span>',
-  '          </div>',
-  '        </div>',
-  '      </div>',
-  '',
-  '      <!-- Portfolio Overview Cards (ขยับสด) -->',
-  '      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">',
-  '        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">',
-  '          <span class="text-xs text-slate-400 block">มูลค่าพอร์ตรวม (Real-Time)</span>',
-  '          <p id="pf-total-val" class="text-2xl font-black text-white mt-1">฿--</p>',
-  '          <span class="text-[11px] text-slate-400">ต้นทุนรวม: <span id="pf-total-cost">฿--</span></span>',
-  '        </div>',
-  '        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">',
-  '          <span class="text-xs text-slate-400 block">กำไร/ขาดทุนสุทธิ</span>',
-  '          <p id="pf-total-profit" class="text-2xl font-black text-emerald-400 mt-1">--</p>',
-  '          <span class="text-[11px] text-slate-400">คำนวณราคาตลาดโลกสดๆ</span>',
-  '        </div>',
-  '        <div class="bg-rose-950/20 border border-rose-800/40 rounded-2xl p-4">',
-  '          <span class="text-xs text-rose-300 font-bold block">🚨 หุ้นที่น่าเป็นห่วงที่สุด</span>',
-  '          <p class="text-xl font-black text-rose-400 mt-1">BIDU (-22.8%)</p>',
-  '          <span class="text-[11px] text-rose-300/80">เทคจีนติดลบหนัก แนะนำลดความเสี่ยง</span>',
-  '        </div>',
-  '        <div class="bg-emerald-950/20 border border-emerald-800/40 rounded-2xl p-4">',
-  '          <span class="text-xs text-emerald-300 font-bold block">⭐ วันนี้ควรซื้อเพิ่มตัวไหน?</span>',
-  '          <p class="text-xl font-black text-emerald-400 mt-1">VOO (S&P 500)</p>',
-  '          <span class="text-[11px] text-emerald-300/80">เสาหลักพอร์ต เติบโตแข็งแกร่งที่สุด</span>',
-  '        </div>',
-  '      </div>',
-  '',
-  '      <!-- Form: Add or Update Holdings -->',
-  '      <div class="bg-slate-900 border-2 border-purple-500/40 rounded-2xl p-4 shadow-xl">',
-  '        <div class="flex items-center justify-between mb-2">',
-  '          <h3 class="font-bold text-sm text-purple-300 flex items-center gap-2">',
-  '            <span>➕</span> ใส่จำนวนหุ้นเพิ่มเมื่อซื้อใหม่ (Update Holdings)',
-  '          </h3>',
-  '          <span class="text-[11px] text-slate-400">บันทึกปุ๊บ ระบบจะคำนวณกำไรและราคาใหม่สดๆ ทันที</span>',
-  '        </div>',
-  '        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">',
-  '          <div>',
-  '            <label class="text-slate-400 block mb-1">เลือกหุ้นที่คุณซื้อ:</label>',
-  '            <select id="inp-add-symbol" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 font-bold text-white focus:outline-none focus:border-purple-400">',
-  '              <option value="VOO">VOO (Vanguard S&P 500)</option>',
-  '              <option value="TTB">TTB (ธนาคารทหารไทยธนชาต)</option>',
-  '              <option value="AMD">AMD (Advanced Micro Devices)</option>',
-  '              <option value="VT">VT (Vanguard World)</option>',
-  '              <option value="XLV">XLV (Healthcare ETF)</option>',
-  '              <option value="TSLA">TSLA (Tesla)</option>',
-  '              <option value="XOM">XOM (Exxon Mobil)</option>',
-  '              <option value="BIDU">BIDU (Baidu)</option>',
-  '              <option value="YLG-GOLD">YLG-GOLD (ทองคำ)</option>',
-  '              <option value="SCBT70X(26A)">SCBT70X(26A)</option>',
-  '              <option value="SCBTB(Thai ESGA)">SCBTB(Thai ESGA)</option>',
-  '            </select>',
-  '          </div>',
-  '          <div>',
-  '            <label class="text-slate-400 block mb-1">จำนวนหุ้นคงเหลือใหม่:</label>',
-  '            <input type="number" step="any" id="inp-add-shares" placeholder="เช่น 0.05 หรือ 200" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 font-mono text-white focus:outline-none focus:border-purple-400">',
-  '          </div>',
-  '          <div>',
-  '            <label class="text-slate-400 block mb-1">ต้นทุนเฉลี่ยใหม่ (USD หรือ บาท):</label>',
-  '            <input type="number" step="any" id="inp-add-cost" placeholder="ต้นทุนเฉลี่ยต่อหุ้น" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 font-mono text-white focus:outline-none focus:border-purple-400">',
-  '          </div>',
-  '          <div class="flex items-end">',
-  '            <button onclick="saveHoldingUpdate()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-md">',
-  '              💾 บันทึกจำนวนหุ้นลงพอร์ต',
-  '            </button>',
-  '          </div>',
-  '        </div>',
-  '        <p id="add-toast" class="text-xs text-emerald-400 font-bold mt-2 text-center h-4"></p>',
-  '      </div>',
-  '',
-  '      <!-- Holdings Table -->',
-  '      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">',
-  '        <div class="flex items-center justify-between mb-3">',
-  '          <div>',
-  '            <h3 class="font-bold text-sm text-white">📋 หุ้น 11 ตัวในพอร์ตของคุณ (ราคา & กำไรขยับสด Real-Time)</h3>',
-  '            <span class="text-xs text-slate-400">แยกตามพอร์ตหุ้นหลัก, ถือยาว, และรอขายใน Dime</span>',
-  '          </div>',
-  '          <button onclick="loadMyPortfolio()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-slate-700">🔄 รีเฟรชสด</button>',
-  '        </div>',
-  '        <div class="overflow-x-auto">',
-  '          <table class="w-full text-left text-xs font-mono">',
-  '            <thead>',
-  '              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">',
-  '                <th class="py-3 px-3">หมวด</th>',
-  '                <th class="py-3 px-3">ชื่อสินทรัพย์</th>',
-  '                <th class="py-3 px-3">จำนวนหุ้น</th>',
-  '                <th class="py-3 px-3">ต้นทุนเฉลี่ย</th>',
-  '                <th class="py-3 px-3">ราคาตลาดสด</th>',
-  '                <th class="py-3 px-3">มูลค่าปัจจุบัน</th>',
-  '                <th class="py-3 px-3">กำไร/ขาดทุน</th>',
-  '                <th class="py-3 px-3 font-sans">คำแนะนำหมอพอร์ต</th>',
-  '              </tr>',
-  '            </thead>',
-  '            <tbody id="pf-tbody" class="divide-y divide-slate-800/60 font-sans">',
-  '              <tr><td colspan="8" class="py-6 text-center text-slate-500">กำลังดึงราคาตลาดสด...</td></tr>',
-  '            </tbody>',
-  '          </table>',
-  '        </div>',
-  '      </div>',
-  '    </div>',
-  '',
-  '    <!-- TAB 2: M15 DAY TRADE SECTION -->',
-  '    <div id="view-m15" class="hidden flex flex-col gap-4">',
+  '    <!-- TAB 1: M15 PRO TRADING TERMINAL -->',
+  '    <div id="view-m15" class="flex flex-col gap-4">',
   '      <!-- 5-Asset Radar -->',
   '      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">',
   '        <div onclick="setAsset(\'OANDA:XAUUSD\',\'XAU/USD\')" class="cursor-pointer bg-slate-900 hover:bg-slate-800/80 border-2 border-amber-500/80 rounded-xl p-3 transition">',
@@ -898,34 +968,370 @@ const HTML_PAGE = [
   '        </div>',
   '      </div>',
   '    </div>',
+  '',
+  '    <!-- TAB 2: MY PERSONAL PORTFOLIO DOCTOR -->',
+  '    <div id="view-portfolio" class="hidden flex flex-col gap-5">',
+  '      <!-- Portfolio Health & Stats -->',
+  '      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">',
+  '        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">',
+  '          <span class="text-xs text-slate-400 block">มูลค่าพอร์ตรวม (Real-Time)</span>',
+  '          <p id="pf-total-val" class="text-2xl font-black text-white mt-1">฿--</p>',
+  '          <span class="text-[11px] text-slate-400">ต้นทุน: <span id="pf-total-cost">฿--</span></span>',
+  '        </div>',
+  '        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">',
+  '          <span class="text-xs text-slate-400 block">กำไร/ขาดทุนสุทธิ</span>',
+  '          <p id="pf-total-profit" class="text-2xl font-black text-emerald-400 mt-1">--</p>',
+  '          <span class="text-[11px] text-slate-400">ราคาตลาดสดขยับตามจริง</span>',
+  '        </div>',
+  '        <!-- Health Score Gauge (ลูกเล่นวัดสุขภาพพอร์ต) -->',
+  '        <div class="bg-slate-900 border-2 border-emerald-500/40 rounded-2xl p-4 flex items-center justify-between">',
+  '          <div>',
+  '            <span class="text-xs text-slate-400 block">คะแนนสุขภาพพอร์ต</span>',
+  '            <p id="pf-health-score" class="text-2xl font-black text-emerald-400 mt-1">85 / 100</p>',
+  '            <span class="text-[10px] text-emerald-300">เกรด A • สุขภาพแข็งแรง</span>',
+  '          </div>',
+  '          <div class="text-3xl">🩺</div>',
+  '        </div>',
+  '        <div class="bg-rose-950/20 border border-rose-800/40 rounded-2xl p-4">',
+  '          <span class="text-xs text-rose-300 font-bold block">🚨 ตัวที่น่าเป็นห่วงที่สุด</span>',
+  '          <p class="text-xl font-black text-rose-400 mt-1">BIDU (-22.8%)</p>',
+  '          <span class="text-[10px] text-rose-300/80">เทคจีนติดลบหนัก แนะนำคัดออก</span>',
+  '        </div>',
+  '      </div>',
+  '',
+  '      <!-- Smart DCA Rebalance Calculator (ลูกเล่นคำนวณเติมเงิน) -->',
+  '      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-xs flex flex-wrap items-center justify-between gap-3">',
+  '        <div>',
+  '          <h4 class="font-bold text-amber-400 flex items-center gap-1.5">🧮 เครื่องคำนวณเติมเงิน DCA พอร์ตเศรษฐี</h4>',
+  '          <p class="text-slate-400 mt-0.5">ใส่จำนวนเงินที่คุณต้องการเติมเดือนนี้ ระบบจะแบ่งสัดส่วนที่คุ้มค่าให้ทันที:</p>',
+  '        </div>',
+  '        <div class="flex items-center gap-2">',
+  '          <input type="number" id="inp-dca-amount" value="2000" class="w-28 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 font-mono text-white text-center">',
+  '          <span class="text-slate-400">บาท</span>',
+  '          <button onclick="calcDCA()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-xl transition">คำนวณ</button>',
+  '        </div>',
+  '        <div id="dca-result" class="w-full bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-300 flex flex-wrap gap-4">',
+  '          <span>• เติม <b>VOO (S&P 500)</b>: <b class="text-emerald-400 font-mono">฿1,400</b> (70%)</span>',
+  '          <span>• เติม <b>AMD / TSLA</b>: <b class="text-sky-400 font-mono">฿400</b> (20%)</span>',
+  '          <span>• เติม <b>ทองคำ (YLG-GOLD)</b>: <b class="text-amber-400 font-mono">฿200</b> (10%)</span>',
+  '        </div>',
+  '      </div>',
+  '',
+  '      <!-- Holdings Table -->',
+  '      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">',
+  '        <div class="flex items-center justify-between mb-3">',
+  '          <h3 class="font-bold text-sm text-white">📋 หุ้น 11 ตัวในพอร์ตของคุณ (ราคา & กำไรขยับสด Real-Time)</h3>',
+  '          <button onclick="loadMyPortfolio()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-slate-700">🔄 รีเฟรชสด</button>',
+  '        </div>',
+  '        <div class="overflow-x-auto">',
+  '          <table class="w-full text-left text-xs font-mono">',
+  '            <thead>',
+  '              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">',
+  '                <th class="py-3 px-3">หมวด</th>',
+  '                <th class="py-3 px-3">ชื่อสินทรัพย์</th>',
+  '                <th class="py-3 px-3">จำนวนหุ้น</th>',
+  '                <th class="py-3 px-3">ต้นทุนเฉลี่ย</th>',
+  '                <th class="py-3 px-3">ราคาตลาดสด</th>',
+  '                <th class="py-3 px-3">มูลค่าปัจจุบัน</th>',
+  '                <th class="py-3 px-3">กำไร/ขาดทุน</th>',
+  '                <th class="py-3 px-3 font-sans">คำแนะนำหมอพอร์ต</th>',
+  '              </tr>',
+  '            </thead>',
+  '            <tbody id="pf-tbody" class="divide-y divide-slate-800/60 font-sans">',
+  '              <tr><td colspan="8" class="py-6 text-center text-slate-500">กำลังดึงราคาตลาดสด...</td></tr>',
+  '            </tbody>',
+  '          </table>',
+  '        </div>',
+  '      </div>',
+  '    </div>',
+  '',
+  '    <!-- TAB 3: BROAD MARKET & WHICH STOCK IS GOOD (หน้าหุ้นไหนดี & สแกนทั้งตลาด) -->',
+  '    <div id="view-broad" class="hidden flex flex-col gap-5">',
+  '      <!-- Search Bar -->',
+  '      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-wrap items-center justify-between gap-3">',
+  '        <div class="flex-1 min-w-[280px]">',
+  '          <label class="text-xs font-bold text-amber-400 block mb-1">🔍 วิเคราะห์หุ้นตัวไหนก็ได้ในโลก (พิมพ์ชื่อย่อ เช่น TSLA, NVDA, PLTR, COIN, DIS):</label>',
+  '          <div class="flex items-center gap-2">',
+  '            <input type="text" id="inp-stock-search" placeholder="พิมพ์ชื่อย่อหุ้น เช่น TSLA หรือ NVDA" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-mono uppercase text-white focus:outline-none focus:border-amber-400">',
+  '            <button onclick="searchSingleStock()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2 rounded-xl text-xs transition shadow-md">',
+  '              วิเคราะห์จุดซื้อทันที',
+  '            </button>',
+  '          </div>',
+  '        </div>',
+  '        <button id="send-broad-tg-btn" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow transition">',
+  '          🌟 ส่ง 4 หุ้นเด่นเข้า Telegram',
+  '        </button>',
+  '      </div>',
+  '',
+  '      <!-- Search Card Output -->',
+  '      <div id="search-result-card" class="hidden bg-slate-900 border-2 border-amber-500/80 rounded-2xl p-5 shadow-2xl">',
+  '        <div class="flex items-center justify-between border-b border-slate-800 pb-3">',
+  '          <div><span class="text-xs font-black text-amber-400 uppercase">ผลวิเคราะห์หุ้นสด</span><h3 id="res-sym" class="text-2xl font-black text-white mt-0.5">--</h3></div>',
+  '          <span id="res-verdict" class="px-3.5 py-1.5 rounded-full text-xs font-black">--</span>',
+  '        </div>',
+  '        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-3 text-xs font-mono">',
+  '          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800"><span class="text-slate-400 font-sans">ราคาตลาด:</span><p id="res-price" class="text-base font-bold text-white mt-1">--</p></div>',
+  '          <div class="bg-emerald-950/30 p-3 rounded-xl border border-emerald-800/40"><span class="text-emerald-400 font-sans font-bold">🛒 โซนควรเข้าซื้อ:</span><p id="res-buyzone" class="text-base font-bold text-emerald-300 mt-1">--</p></div>',
+  '          <div class="bg-teal-950/30 p-3 rounded-xl border border-teal-800/40"><span class="text-teal-400 font-sans font-bold">🎯 เป้าทำกำไร (TP2):</span><p id="res-target" class="text-base font-bold text-teal-300 mt-1">--</p></div>',
+  '          <div class="bg-rose-950/30 p-3 rounded-xl border border-rose-800/40"><span class="text-rose-400 font-sans">🛑 จุด Stop Loss:</span><p id="res-sl" class="text-base font-bold text-rose-400 mt-1">--</p></div>',
+  '        </div>',
+  '        <p id="res-reason" class="text-xs text-slate-300 bg-slate-950/60 p-3 rounded-xl border border-slate-800 italic">--</p>',
+  '      </div>',
+  '',
+  '      <!-- Quick Matchmaker Pills (ลูกเล่นคัดกรองด่วน) -->',
+  '      <div class="flex flex-wrap items-center gap-2 text-xs">',
+  '        <span class="text-slate-400 font-medium">คัดกรองด่วน:</span>',
+  '        <button onclick="filterMatch(\'ALL\')" class="filter-pill active px-3 py-1.5 rounded-xl font-bold bg-amber-500 text-slate-950">ทั้งหมด (35+ หุ้น)</button>',
+  '        <button onclick="filterMatch(\'DIP\')" class="filter-pill px-3 py-1.5 rounded-xl font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">🛒 ก้นหลุมรอบเดือน (Dip Deals)</button>',
+  '        <button onclick="filterMatch(\'TECH\')" class="filter-pill px-3 py-1.5 rounded-xl font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">🚀 AI & Tech เติบโตสูง</button>',
+  '        <button onclick="filterMatch(\'BLUECHIP\')" class="filter-pill px-3 py-1.5 rounded-xl font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">💎 หุ้นมั่นคง Blue-Chip</button>',
+  '      </div>',
+  '',
+  '      <!-- Full Market Screener Table -->',
+  '      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">',
+  '        <div class="flex items-center justify-between mb-3">',
+  '          <h3 class="font-bold text-sm text-white">📊 ผลการจัดอันดับหุ้นน่าซื้อทั้งตลาดสหรัฐฯ (คำนวณจากก้นหลุมรอบเดือน + เทรนด์ 50/200 วัน)</h3>',
+  '          <button onclick="loadBroadMarket()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-amber-500/30">🔄 รีเฟรช</button>',
+  '        </div>',
+  '        <div class="overflow-x-auto">',
+  '          <table class="w-full text-left text-xs font-mono">',
+  '            <thead>',
+  '              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">',
+  '                <th class="py-3 px-3">อันดับ</th>',
+  '                <th class="py-3 px-3">หุ้น</th>',
+  '                <th class="py-3 px-3">คำแนะนำ</th>',
+  '                <th class="py-3 px-3">คะแนนน่าซื้อ</th>',
+  '                <th class="py-3 px-3">ราคาตลาดสด</th>',
+  '                <th class="py-3 px-3">โซนควรเข้าซื้อ</th>',
+  '                <th class="py-3 px-3">Stop Loss</th>',
+  '                <th class="py-3 px-3">เป้าทำกำไร</th>',
+  '                <th class="py-3 px-3">อัพไซด์ (%)</th>',
+  '              </tr>',
+  '            </thead>',
+  '            <tbody id="broad-tbody" class="divide-y divide-slate-800/60 font-sans">',
+  '              <tr><td colspan="9" class="py-6 text-center text-slate-500">กำลังสแกนราคาจริงทั้งตลาด...</td></tr>',
+  '            </tbody>',
+  '          </table>',
+  '        </div>',
+  '      </div>',
+  '    </div>',
   '  </main>',
   '',
   '  <script>',
-  '    let activeTab = "portfolio";',
+  '    let activeMasterTab = "m15";',
   '    let currentSelectedSymbol = "XAU/USD";',
   '    let latestPlans = {};',
-  '    let currentRiskDist = 6.0;',
+  '    let broadMarketList = [];',
+  '    let currentBroadFilter = "ALL";',
   '    let voiceOn = true;',
+  '    let lastHoldingPrices = {};',
+  '    let lastTotalVal = null;',
+  '    let lastAssetPrices = {};',
+  '    let lastMessageTime = Date.now();',
+  '    let secondsSinceLastTick = 0;',
+  '    let ws = null;',
   '',
-  '    function switchTab(tab) {',
-  '      activeTab = tab;',
-  '      const b1 = document.getElementById("tab-btn-portfolio");',
-  '      const b2 = document.getElementById("tab-btn-m15");',
-  '      const v1 = document.getElementById("view-portfolio");',
-  '      const v2 = document.getElementById("view-m15");',
+  '    // 1. WebSocket Client with Auto-Reconnect',
+  '    function initWebSocket() {',
+  '      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";',
+  '      const wsUrl = protocol + "//" + window.location.host;',
+  '      try {',
+  '        ws = new WebSocket(wsUrl);',
+  '',
+  '        ws.onopen = function() {',
+  '          const b = document.getElementById("ws-badge");',
+  '          if (b) b.className = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-bold";',
+  '          const t = document.getElementById("ws-text");',
+  '          if (t) t.textContent = "🔴 เรียลไทม์สด (Live Connected)";',
+  '        };',
+  '',
+  '        ws.onmessage = function(event) {',
+  '          try {',
+  '            const data = JSON.parse(event.data);',
+  '            handleRealtimePacket(data);',
+  '          } catch(e) {}',
+  '        };',
+  '',
+  '        ws.onclose = function() {',
+  '          const b = document.getElementById("ws-badge");',
+  '          if (b) b.className = "bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-bold";',
+  '          const t = document.getElementById("ws-text");',
+  '          if (t) t.textContent = "⚠️ กำลังต่อสัญญาณใหม่...";',
+  '          setTimeout(initWebSocket, 2000);',
+  '        };',
+  '',
+  '        ws.onerror = function() {',
+  '          if (ws) ws.close();',
+  '        };',
+  '      } catch(e) {',
+  '        setTimeout(initWebSocket, 3000);',
+  '      }',
+  '    }',
+  '',
+  '    // 2. Real-Time Packet Handler',
+  '    function handleRealtimePacket(data) {',
+  '      lastMessageTime = Date.now();',
+  '      secondsSinceLastTick = 0;',
+  '      const lt = document.getElementById("live-timer");',
+  '      if (lt) lt.textContent = "0s";',
+  '',
+  '      if (data.plans) {',
+  '        latestPlans = data.plans;',
+  '        updateActivePlanCard();',
+  '      }',
+  '',
+  '      if (data.radar) {',
+  '        updateM15RadarButtons(data.radar);',
+  '      }',
+  '',
+  '      if (data.portfolio) {',
+  '        updatePortfolioUI(data.portfolio);',
+  '      }',
+  '',
+  '      if (data.broad && Array.isArray(data.broad) && data.broad.length > 0) {',
+  '        broadMarketList = data.broad;',
+  '        if (activeMasterTab === "broad") {',
+  '          applyBroadFilter(currentBroadFilter);',
+  '        }',
+  '      }',
+  '    }',
+  '',
+  '    // 3. Update M15 Radar Buttons & Price Flashes',
+  '    function updateM15RadarButtons(radar) {',
+  '      for (const sym of ["XAU/USD", "QQQ", "NVDA", "AAPL", "SPY"]) {',
+  '        const item = radar[sym];',
+  '        if (!item) continue;',
+  '        const priceEl = document.getElementById("rad-price-" + sym);',
+  '        if (priceEl) {',
+  '          const oldP = lastAssetPrices[sym] || 0;',
+  '          const newP = item.price;',
+  '          priceEl.textContent = "$" + Number(newP).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });',
+  '          if (oldP && newP !== oldP) {',
+  '            priceEl.classList.remove("flash-up", "flash-down");',
+  '            void priceEl.offsetWidth;',
+  '            priceEl.classList.add(newP > oldP ? "flash-up" : "flash-down");',
+  '          }',
+  '          lastAssetPrices[sym] = newP;',
+  '        }',
+  '',
+  '        const rsiEl = document.getElementById("rad-rsi-" + sym);',
+  '        if (rsiEl && item.rsi) rsiEl.textContent = "RSI " + item.rsi;',
+  '',
+  '        const stEl = document.getElementById("rad-status-" + sym);',
+  '        if (stEl) {',
+  '          stEl.textContent = item.isOpen ? "● ตลาดเปิด" : "○ ตลาดปิด";',
+  '          stEl.className = item.isOpen ? "text-[10px] text-emerald-400 font-bold block" : "text-[10px] text-slate-500 font-bold block";',
+  '        }',
+  '      }',
+  '    }',
+  '',
+  '    // 4. Update Active Plan Card',
+  '    function updateActivePlanCard() {',
+  '      const plan = latestPlans[currentSelectedSymbol];',
+  '      if (!plan) return;',
+  '      const tk = document.getElementById("card-ticker");',
+  '      if (tk) tk.textContent = plan.ticker;',
+  '      const en = document.getElementById("card-entry");',
+  '      if (en) en.textContent = plan.entry;',
+  '      const sl = document.getElementById("card-sl");',
+  '      if (sl) sl.textContent = plan.sl;',
+  '      const tp1 = document.getElementById("card-tp1");',
+  '      if (tp1) tp1.textContent = plan.tp1;',
+  '      const tp2 = document.getElementById("card-tp2");',
+  '      if (tp2) tp2.textContent = plan.tp2;',
+  '      const b = document.getElementById("card-action-badge");',
+  '      if (b) {',
+  '        b.textContent = plan.action === "BUY" ? "🟢 BUY (ซื้อ)" : "🔴 SELL (ขาย)";',
+  '        b.className = plan.action === "BUY" ? "px-3.5 py-1 rounded-full text-xs font-black bg-emerald-500 text-slate-950" : "px-3.5 py-1 rounded-full text-xs font-black bg-rose-500 text-white";',
+  '      }',
+  '    }',
+  '',
+  '    // 5. Update Portfolio UI in Real-Time',
+  '    function updatePortfolioUI(data) {',
+  '      if (!data) return;',
+  '      const valEl = document.getElementById("pf-total-val");',
+  '      if (valEl) {',
+  '        const oldVal = lastTotalVal || 0;',
+  '        valEl.textContent = "฿" + Number(data.totalValueTHB).toLocaleString();',
+  '        if (oldVal && data.totalValueTHB !== oldVal) {',
+  '          valEl.classList.remove("flash-up", "flash-down");',
+  '          void valEl.offsetWidth;',
+  '          valEl.classList.add(data.totalValueTHB > oldVal ? "flash-up" : "flash-down");',
+  '        }',
+  '        lastTotalVal = data.totalValueTHB;',
+  '      }',
+  '',
+  '      const costEl = document.getElementById("pf-total-cost");',
+  '      if (costEl) costEl.textContent = "฿" + Number(data.totalCostTHB).toLocaleString();',
+  '',
+  '      const hsEl = document.getElementById("pf-health-score");',
+  '      if (hsEl) hsEl.textContent = data.healthScore + " / 100";',
+  '',
+  '      const sign = data.totalProfitTHB >= 0 ? "+" : "";',
+  '      const pColor = data.totalProfitTHB >= 0 ? "text-emerald-400" : "text-rose-400";',
+  '      const pEl = document.getElementById("pf-total-profit");',
+  '      if (pEl) {',
+  '        pEl.textContent = sign + "฿" + Number(data.totalProfitTHB).toLocaleString() + " (" + sign + data.totalProfitPct + "%)";',
+  '        pEl.className = "text-2xl font-black mt-1 " + pColor;',
+  '      }',
+  '',
+  '      const tbody = document.getElementById("pf-tbody");',
+  '      if (tbody && data.holdings && Array.isArray(data.holdings)) {',
+  '        tbody.innerHTML = data.holdings.map(function(item) {',
+  '          const pCls = item.profitTHB >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";',
+  '          const pSign = item.profitTHB >= 0 ? "+" : "";',
+  '          const badgeColor = item.healthStatus === "ALARM" ? "bg-rose-500/20 text-rose-400 border border-rose-500/30" : item.healthStatus === "EXCELLENT" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-300";',
+  '',
+  '          const prevPrice = lastHoldingPrices[item.symbol] || 0;',
+  '          let flashClass = "";',
+  '          if (prevPrice && item.currentPrice !== prevPrice) {',
+  '            flashClass = item.currentPrice > prevPrice ? "flash-up" : "flash-down";',
+  '          }',
+  '          lastHoldingPrices[item.symbol] = item.currentPrice;',
+  '',
+  '          return "<tr class=\\"hover:bg-slate-800/50 transition " + flashClass + "\\">" +',
+  '            "<td class=\\"py-3 px-3\\"><span class=\\"text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold\\">" + item.category + "</span></td>" +',
+  '            "<td class=\\"py-3 px-3\\"><b class=\\"text-white text-sm\\">" + item.symbol + "</b><span class=\\"text-slate-400 text-xs block\\">" + item.name + "</span></td>" +',
+  '            "<td class=\\"py-3 px-3 font-mono text-white font-bold\\">" + item.shares + "</td>" +',
+  '            "<td class=\\"py-3 px-3 font-mono text-slate-300\\">" + (item.currency===\'USD\'?\'$\':\'฿\') + item.avgCost + "</td>" +',
+  '            "<td class=\\"py-3 px-3 font-mono text-white font-bold " + flashClass + "\\">" + (item.currency===\'USD\'?\'$\':\'฿\') + item.currentPrice + "</td>" +',
+  '            "<td class=\\"py-3 px-3 font-mono text-white\\">฿" + Number(item.valueTHB).toLocaleString() + "</td>" +',
+  '            "<td class=\\"py-3 px-3 font-mono " + pCls + "\\">" + pSign + "฿" + item.profitTHB + " (" + pSign + item.profitPct + "%)</td>" +',
+  '            "<td class=\\"py-3 px-3\\"><span class=\\"px-2 py-0.5 rounded text-[11px] font-bold block " + badgeColor + "\\">" + item.advice + "</span></td>" +',
+  '          "</tr>";',
+  '        }).join("");',
+  '      }',
+  '    }',
+  '',
+  '    // 6. Navigation Tabs',
+  '    function switchMasterTab(tab) {',
+  '      activeMasterTab = tab;',
+  '      const b1 = document.getElementById("tab-btn-m15");',
+  '      const b2 = document.getElementById("tab-btn-portfolio");',
+  '      const b3 = document.getElementById("tab-btn-broad");',
+  '      const v1 = document.getElementById("view-m15");',
+  '      const v2 = document.getElementById("view-portfolio");',
+  '      const v3 = document.getElementById("view-broad");',
   '',
   '      b1.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700";',
   '      b2.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700";',
+  '      b3.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700";',
   '      v1.classList.add("hidden");',
   '      v2.classList.add("hidden");',
+  '      v3.classList.add("hidden");',
   '',
-  '      if (tab === "portfolio") {',
-  '        b1.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-purple-600 text-white shadow-md";',
+  '      if (tab === "m15") {',
+  '        b1.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md";',
   '        v1.classList.remove("hidden");',
+  '      } else if (tab === "portfolio") {',
+  '        b2.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-purple-600 text-white shadow-md";',
+  '        v2.classList.remove("hidden");',
   '        loadMyPortfolio();',
   '      } else {',
-  '        b2.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md";',
-  '        v2.classList.remove("hidden");',
+  '        b3.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md";',
+  '        v3.classList.remove("hidden");',
+  '        if (broadMarketList.length === 0) loadBroadMarket();',
+  '        else applyBroadFilter(currentBroadFilter);',
   '      }',
   '    }',
   '',
@@ -934,115 +1340,188 @@ const HTML_PAGE = [
   '      if (!txt || txt === "--") return;',
   '      navigator.clipboard.writeText(txt);',
   '      const el = document.getElementById("copy-toast");',
-  '      el.textContent = "✅ คัดลอก " + label + " (" + txt + ") แล้ว!";',
-  '      setTimeout(function() { el.textContent = ""; }, 2500);',
+  '      if (el) {',
+  '        el.textContent = "✅ คัดลอก " + label + " (" + txt + ") แล้ว!";',
+  '        setTimeout(function() { el.textContent = ""; }, 2500);',
+  '      }',
   '    }',
   '',
   '    function setAsset(tvSym, label) {',
   '      currentSelectedSymbol = label;',
-  '      document.getElementById("tv-frame").src = "https://s.tradingview.com/widgetembed/?symbol=" + encodeURIComponent(tvSym) + "&interval=15&theme=dark&timezone=Asia%2FBangkok";',
-  '      const plan = latestPlans[label];',
-  '      if (plan) {',
-  '        document.getElementById("card-ticker").textContent = plan.ticker;',
-  '        document.getElementById("card-entry").textContent = plan.entry;',
-  '        document.getElementById("card-sl").textContent = plan.sl;',
-  '        document.getElementById("card-tp1").textContent = plan.tp1;',
-  '        document.getElementById("card-tp2").textContent = plan.tp2;',
-  '        const b = document.getElementById("card-action-badge");',
-  '        b.textContent = plan.action === "BUY" ? "🟢 BUY (ซื้อ)" : "🔴 SELL (ขาย)";',
-  '        b.className = plan.action === "BUY" ? "px-3.5 py-1 rounded-full text-xs font-black bg-emerald-500 text-slate-950" : "px-3.5 py-1 rounded-full text-xs font-black bg-rose-500 text-white";',
+  '      const tvFrame = document.getElementById("tv-frame");',
+  '      if (tvFrame) {',
+  '        tvFrame.src = "https://s.tradingview.com/widgetembed/?symbol=" + encodeURIComponent(tvSym) + "&interval=15&theme=dark&timezone=Asia%2FBangkok";',
   '      }',
+  '      updateActivePlanCard();',
+  '    }',
+  '',
+  '    function calcDCA() {',
+  '      const amt = parseFloat(document.getElementById("inp-dca-amount").value) || 2000;',
+  '      const voo = Math.round(amt * 0.7);',
+  '      const tech = Math.round(amt * 0.2);',
+  '      const gold = amt - voo - tech;',
+  '      document.getElementById("dca-result").innerHTML = ',
+  '        "<span>• เติม <b>VOO (S&P 500)</b>: <b class=\'text-emerald-400 font-mono\'>฿" + voo.toLocaleString() + "</b> (70%)</span>" +',
+  '        "<span>• เติม <b>AMD / TSLA</b>: <b class=\'text-sky-400 font-mono\'>฿" + tech.toLocaleString() + "</b> (20%)</span>" +',
+  '        "<span>• เติม <b>ทองคำ (YLG-GOLD)</b>: <b class=\'text-amber-400 font-mono\'>฿" + gold.toLocaleString() + "</b> (10%)</span>";',
   '    }',
   '',
   '    async function loadMyPortfolio() {',
-  '      const r = await fetch("/api/my-portfolio");',
-  '      const data = await r.json();',
-  '      if (!data) return;',
-  '      document.getElementById("pf-total-val").textContent = "฿" + data.totalValueTHB.toLocaleString();',
-  '      document.getElementById("pf-total-cost").textContent = "฿" + data.totalCostTHB.toLocaleString();',
-  '      const sign = data.totalProfitTHB >= 0 ? "+" : "";',
-  '      const pColor = data.totalProfitTHB >= 0 ? "text-emerald-400" : "text-rose-400";',
-  '      document.getElementById("pf-total-profit").textContent = sign + "฿" + data.totalProfitTHB.toLocaleString() + " (" + sign + data.totalProfitPct + "%)";',
-  '      document.getElementById("pf-total-profit").className = "text-2xl font-black mt-1 " + pColor;',
+  '      try {',
+  '        const r = await fetch("/api/my-portfolio");',
+  '        const data = await r.json();',
+  '        updatePortfolioUI(data);',
+  '      } catch(e) {}',
+  '    }',
   '',
-  '      const tbody = document.getElementById("pf-tbody");',
-  '      tbody.innerHTML = data.holdings.map(function(item) {',
-  '        const pCls = item.profitTHB >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";',
-  '        const pSign = item.profitTHB >= 0 ? "+" : "";',
-  '        const badgeColor = item.healthStatus === "ALARM" ? "bg-rose-500/20 text-rose-400 border border-rose-500/30" : item.healthStatus === "EXCELLENT" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-300";',
-  '        return "<tr class=\\"hover:bg-slate-800/50 transition\\">" +',
-  '          "<td class=\\"py-3 px-3\\"><span class=\\"text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold\\">" + item.category + "</span></td>" +',
-  '          "<td class=\\"py-3 px-3\\"><b class=\\"text-white text-sm\\">" + item.symbol + "</b><span class=\\"text-slate-400 text-xs block\\">" + item.name + "</span></td>" +',
-  '          "<td class=\\"py-3 px-3 font-mono text-white font-bold\\">" + item.shares + "</td>" +',
-  '          "<td class=\\"py-3 px-3 font-mono text-slate-300\\">" + (item.currency===\'USD\'?\'$\':\'฿\') + item.avgCost + "</td>" +',
-  '          "<td class=\\"py-3 px-3 font-mono text-white font-bold\\">" + (item.currency===\'USD\'?\'$\':\'฿\') + item.currentPrice + "</td>" +',
-  '          "<td class=\\"py-3 px-3 font-mono text-white\\">฿" + item.valueTHB.toLocaleString() + "</td>" +',
-  '          "<td class=\\"py-3 px-3 font-mono " + pCls + "\\">" + pSign + "฿" + item.profitTHB + " (" + pSign + item.profitPct + "%)</td>" +',
-  '          "<td class=\\"py-3 px-3\\"><span class=\\"px-2 py-0.5 rounded text-[11px] font-bold block " + badgeColor + "\\">" + item.advice + "</span></td>" +',
+  '    async function loadBroadMarket() {',
+  '      try {',
+  '        const r = await fetch("/api/broad-market");',
+  '        const d = await r.json();',
+  '        broadMarketList = d.stocks || [];',
+  '        applyBroadFilter(currentBroadFilter);',
+  '      } catch(e) {}',
+  '    }',
+  '',
+  '    function filterMatch(type) {',
+  '      currentBroadFilter = type;',
+  '      document.querySelectorAll(".filter-pill").forEach(p => {',
+  '        p.className = "filter-pill px-3 py-1.5 rounded-xl font-bold bg-slate-800 text-slate-300 hover:bg-slate-700";',
+  '      });',
+  '      if (event && event.target) {',
+  '        event.target.className = "filter-pill active px-3 py-1.5 rounded-xl font-bold bg-amber-500 text-slate-950";',
+  '      }',
+  '      applyBroadFilter(type);',
+  '    }',
+  '',
+  '    function applyBroadFilter(type) {',
+  '      if (type === "ALL") {',
+  '        renderBroadTable(broadMarketList);',
+  '      } else if (type === "DIP") {',
+  '        renderBroadTable(broadMarketList.filter(x => x.isDipDeal || x.distFromLowPct <= 5.0));',
+  '      } else {',
+  '        renderBroadTable(broadMarketList.filter(x => x.category === type));',
+  '      }',
+  '    }',
+  '',
+  '    function renderBroadTable(list) {',
+  '      const tbody = document.getElementById("broad-tbody");',
+  '      if (!tbody) return;',
+  '      if (!list || list.length === 0) {',
+  '        tbody.innerHTML = "<tr><td colspan=\\"9\\" class=\\"py-6 text-center text-slate-500\\">ไม่พบข้อมูลในหมวดหมู่นี้</td></tr>";',
+  '        return;',
+  '      }',
+  '      tbody.innerHTML = list.map(function(item, idx) {',
+  '        const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : ("#" + (idx + 1));',
+  '        return "<tr class=\\"hover:bg-slate-800/60 transition\\">" +',
+  '          "<td class=\\"py-3 px-3 font-bold text-amber-400\\">" + medal + "</td>" +',
+  '          "<td class=\\"py-3 px-3\\"><b class=\\"text-white text-sm\\">" + item.symbol + "</b><span class=\\"text-slate-400 text-xs block\\">" + item.sector + "</span></td>" +',
+  '          "<td class=\\"py-3 px-3\\"><span class=\\"px-2.5 py-0.5 rounded text-[11px] " + item.verdictClass + "\\">" + item.badgeText + "</span></td>" +',
+  '          "<td class=\\"py-3 px-3 font-mono font-bold text-emerald-400\\">" + item.score + " / 100</td>" +',
+  '          "<td class=\\"py-3 px-3 font-mono font-bold text-white\\">$" + item.price + "</td>" +',
+  '          "<td class=\\"py-3 px-3 font-mono font-bold text-emerald-300\\">$" + item.buyZone + "</td>" +',
+  '          "<td class=\\"py-3 px-3 font-mono text-rose-400\\">$" + item.sl + "</td>" +',
+  '          "<td class=\\"py-3 px-3 font-mono text-teal-300 font-bold\\">$" + item.tp2 + "</td>" +',
+  '          "<td class=\\"py-3 px-3 font-mono font-black text-emerald-400\\">+" + item.upside + "%</td>" +',
   '        "</tr>";',
   '      }).join("");',
   '    }',
   '',
-  '    async function saveHoldingUpdate() {',
-  '      const sym = document.getElementById("inp-add-symbol").value;',
-  '      const shares = document.getElementById("inp-add-shares").value;',
-  '      const cost = document.getElementById("inp-add-cost").value;',
-  '      if (!shares) return alert("กรุณาใส่จำนวนหุ้นใหม่");',
-  '      const r = await fetch("/api/update-holding", {',
-  '        method: "POST",',
-  '        headers: { "Content-Type": "application/json" },',
-  '        body: JSON.stringify({ symbol: sym, newShares: shares, newAvgCost: cost })',
-  '      });',
-  '      const d = await r.json();',
-  '      if (d.ok) {',
-  '        loadMyPortfolio();',
-  '        const t = document.getElementById("add-toast");',
-  '        t.textContent = "✅ บันทึกหุ้น " + sym + " เรียบร้อย!";',
-  '        setTimeout(function() { t.textContent = ""; }, 3000);',
+  '    async function searchSingleStock() {',
+  '      const sym = document.getElementById("inp-stock-search").value.trim().toUpperCase();',
+  '      if (!sym) return alert("กรุณาพิมพ์ชื่อย่อหุ้น เช่น NVDA, TSLA, PLTR");',
+  '      const card = document.getElementById("search-result-card");',
+  '      card.classList.remove("hidden");',
+  '      document.getElementById("res-sym").textContent = "กำลังวิเคราะห์ " + sym + "...";',
+  '      try {',
+  '        const r = await fetch("/api/analyze-stock?symbol=" + encodeURIComponent(sym));',
+  '        const d = await r.json();',
+  '        if (d.ok && d.stock) {',
+  '          const s = d.stock;',
+  '          document.getElementById("res-sym").textContent = s.symbol + " (คะแนนน่าซื้อ " + s.score + "/100)";',
+  '          const b = document.getElementById("res-verdict");',
+  '          b.textContent = s.badgeText;',
+  '          b.className = "px-3.5 py-1.5 rounded-full text-xs font-black " + s.verdictClass;',
+  '          document.getElementById("res-price").textContent = "$" + s.price;',
+  '          document.getElementById("res-buyzone").textContent = "$" + s.buyZone;',
+  '          document.getElementById("res-target").textContent = "$" + s.tp2 + " (+" + s.upside + "%)";',
+  '          document.getElementById("res-sl").textContent = "$" + s.sl;',
+  '          document.getElementById("res-reason").textContent = "💡 " + s.reason;',
+  '        } else {',
+  '          alert(d.error || "ไม่พบข้อมูลหุ้น");',
+  '          card.classList.add("hidden");',
+  '        }',
+  '      } catch(e) {',
+  '        alert("เกิดข้อผิดพลาดในการดึงข้อมูล");',
+  '        card.classList.add("hidden");',
   '      }',
   '    }',
   '',
-  '    document.getElementById("send-forecast-btn").onclick = async function() {',
-  '      const btn = document.getElementById("send-forecast-btn");',
-  '      btn.textContent = "⏳ กำลังส่งคาดเดากราฟ...";',
-  '      const r = await fetch("/api/send-forecast-telegram", { method: "POST" });',
-  '      const d = await r.json();',
-  '      btn.textContent = d.ok ? "✅ ส่งเข้า Telegram เรียบร้อย!" : "⚠️ ส่งไม่สำเร็จ";',
-  '      setTimeout(function() { btn.textContent = "🔮 ส่งคาดเดากราฟเข้า Telegram"; }, 3000);',
-  '    };',
+  '    // 7. World Clock Ticking Every Second',
+  '    function updateWorldClock() {',
+  '      const now = new Date();',
+  '      // Bangkok',
+  '      const bkkStr = now.toLocaleTimeString(\'th-TH\', { timeZone: \'Asia/Bangkok\', hour12: false });',
+  '      const bkkHour = parseInt(now.toLocaleTimeString(\'en-US\', { timeZone: \'Asia/Bangkok\', hour: \'2-digit\', hour12: false }));',
+  '      const bkkMin = parseInt(now.toLocaleTimeString(\'en-US\', { timeZone: \'Asia/Bangkok\', minute: \'2-digit\' }));',
+  '      const bkkDay = now.toLocaleDateString(\'en-US\', { timeZone: \'Asia/Bangkok\', weekday: \'short\' });',
+  '      const isBkkOpen = (bkkDay !== \'Sat\' && bkkDay !== \'Sun\') && ((bkkHour >= 10 && bkkHour < 12) || (bkkHour === 12 && bkkMin <= 30) || (bkkHour >= 14 && bkkHour < 16) || (bkkHour === 16 && bkkMin <= 30));',
+  '      const bkkEl = document.getElementById("session-bkk");',
+  '      if (bkkEl) bkkEl.innerHTML = "🇹🇭 ไทย: <span class=\'font-mono\'>" + bkkStr + "</span> (" + (isBkkOpen ? "<span class=\'text-emerald-400\'>🟢 เปิด</span>" : "<span class=\'text-slate-500\'>🔴 ปิด</span>") + ")";',
   '',
-  '    document.getElementById("test-news-btn").onclick = async function() {',
-  '      const btn = document.getElementById("test-news-btn");',
-  '      btn.textContent = "⏳ กำลังส่งข่าวด่วน...";',
-  '      const r = await fetch("/api/send-news-flash", {',
-  '        method: "POST",',
-  '        headers: { "Content-Type": "application/json" },',
-  '        body: JSON.stringify({',
-  '          title: "ตัวเลขเงินเฟ้อ CPI สหรัฐฯ ออกมา 2.8% (ต่ำกว่าคาดการณ์ 3.1%)",',
-  '          actual: "2.8%", forecast: "3.1%",',
-  '          impact: "🟢 หนุนทองคำพุ่งขึ้นแรง + ดัชนีหุ้นบวกทันที!",',
-  '          analysis: "เงินเฟ้อสหรัฐฯ ชะลอตัวลงเร็วกว่าคาด ตลาดคลายกังวลเรื่องดอกเบี้ย Fed ดอลลาร์อ่อนค่าลงทันที ส่งผลให้ราคาทองคำ XAU/USD และหุ้นเทคดีดตัวขึ้นแรง!"',
-  '        })',
-  '      });',
-  '      const d = await r.json();',
-  '      btn.textContent = d.ok ? "✅ ส่งข่าวด่วนเข้า Telegram แล้ว!" : "⚠️ ส่งไม่สำเร็จ";',
-  '      setTimeout(function() { btn.textContent = "🚨 จำลองข่าวด่วนเข้า Telegram"; }, 3000);',
-  '    };',
+  '      // US East (Wall Street)',
+  '      const usStr = now.toLocaleTimeString(\'en-US\', { timeZone: \'America/New_York\', hour12: false });',
+  '      const usHour = parseInt(now.toLocaleTimeString(\'en-US\', { timeZone: \'America/New_York\', hour: \'2-digit\', hour12: false }));',
+  '      const usMin = parseInt(now.toLocaleTimeString(\'en-US\', { timeZone: \'America/New_York\', minute: \'2-digit\' }));',
+  '      const usDay = now.toLocaleDateString(\'en-US\', { timeZone: \'America/New_York\', weekday: \'short\' });',
+  '      const isUsOpen = (usDay !== \'Sat\' && usDay !== \'Sun\') && (usHour > 9 || (usHour === 9 && usMin >= 30)) && usHour < 16;',
+  '      const usEl = document.getElementById("session-us");',
+  '      if (usEl) usEl.innerHTML = "🇺🇸 สหรัฐฯ: <span class=\'font-mono\'>" + usStr + "</span> (" + (isUsOpen ? "<span class=\'text-emerald-400\'>🟢 เปิด</span>" : "<span class=\'text-amber-400\'>🔴 ปิด (เปิด 20:30)</span>") + ")";',
+  '    }',
+  '',
+  '    // 8. Timers and Initial Setup',
+  '    setInterval(updateWorldClock, 1000);',
+  '    updateWorldClock();',
+  '',
+  '    setInterval(function() {',
+  '      secondsSinceLastTick++;',
+  '      const el = document.getElementById("live-timer");',
+  '      if (el) el.textContent = secondsSinceLastTick + "s";',
+  '    }, 1000);',
+  '',
+  '    // Fallback Polling every 5 seconds if WebSocket drops',
+  '    setInterval(async function() {',
+  '      if (!ws || ws.readyState !== WebSocket.OPEN) {',
+  '        try {',
+  '          const r = await fetch("/api/signals");',
+  '          const d = await r.json();',
+  '          handleRealtimePacket(d);',
+  '        } catch(e) {}',
+  '      }',
+  '    }, 5000);',
+  '',
+  '    const tgBtn = document.getElementById("send-broad-tg-btn");',
+  '    if (tgBtn) {',
+  '      tgBtn.onclick = async function() {',
+  '        tgBtn.textContent = "⏳ กำลังส่ง 4 หุ้นเด่น...";',
+  '        try {',
+  '          const r = await fetch("/api/send-broad-telegram", { method: "POST" });',
+  '          const d = await r.json();',
+  '          tgBtn.textContent = d.ok ? "✅ ส่งเข้า Telegram เรียบร้อย!" : "⚠️ ส่งไม่สำเร็จ";',
+  '        } catch(e) {',
+  '          tgBtn.textContent = "⚠️ เกิดข้อผิดพลาด";',
+  '        }',
+  '        setTimeout(function() { tgBtn.textContent = "🌟 ส่ง 4 หุ้นเด่นเข้า Telegram"; }, 3000);',
+  '      };',
+  '    }',
+  '',
+  '    initWebSocket();',
   '',
   '    fetch("/api/signals").then(function(r) { return r.json(); }).then(function(d) {',
   '      latestPlans = d.plans || {};',
+  '      if (d.radar) updateM15RadarButtons(d.radar);',
   '      setAsset("OANDA:XAUUSD", "XAU/USD");',
-  '      loadMyPortfolio();',
   '    });',
-  '',
-  '    const proto = location.protocol === "https:" ? "wss:" : "ws:";',
-  '    const ws = new WebSocket(proto + "//" + location.host);',
-  '    ws.onmessage = function(e) {',
-  '      const msg = JSON.parse(e.data);',
-  '      if (msg.type === "RADAR_UPDATE" && msg.portfolio) {',
-  '        renderPortfolioUI(msg.portfolio);',
-  '      }',
-  '    };',
   '  </script>',
   '</body>',
   '</html>'
@@ -1057,12 +1536,16 @@ setInterval(() => {
   fetch(APP_URL + '/api/ping').catch(() => {});
 }, 10 * 60 * 1000);
 
-// ลูปดักฟังแชท Telegram 24/7 เพื่อให้บอทคุยตอบโต้ได้ทันที
 setInterval(pollTelegramUpdates, 3500);
 
 server.listen(PORT, async () => {
-  console.log('🚀 Interactive Bot & Portfolio Doctor running on port ' + PORT);
-  setInterval(scanMarket, 30 * 1000); // อัปเดตราคาพอร์ตสดทุก 30 วินาที
+  console.log('🚀 3-in-1 Master Terminal running on port ' + PORT);
+  setInterval(updateLiveQuotes, 5000); // ดึงราคา Real-Time ทุก 5 วินาที
+  setInterval(scanMarket, 30 * 1000); // สแกนเทรนด์ M15 ทุก 30 วินาที
+  setInterval(scanBroadMarketUniverse, 5 * 60 * 1000); // สแกน 35 หุ้นใหญ่ทุก 5 นาที
+  
+  updateLiveQuotes();
   scanMarket();
-  setTimeout(analyzeUserPortfolio, 2000);
+  setTimeout(analyzeUserPortfolio, 1500);
+  setTimeout(scanBroadMarketUniverse, 3000);
 });
