@@ -1,8 +1,8 @@
-const http = require('http');
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const { WebSocketServer, WebSocket } = require('ws');
+import http from 'http';
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { WebSocketServer, WebSocket } from 'ws';
 
 dotenv.config();
 const app = express();
