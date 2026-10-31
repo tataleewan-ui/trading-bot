@@ -4,6 +4,14 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { WebSocketServer, WebSocket } from 'ws';
 
+
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ [Server Safe Guard] Uncaught Exception:', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ [Server Safe Guard] Unhandled Rejection:', reason);
+});
+
 dotenv.config();
 const app = express();
 const server = http.createServer(app);
@@ -1584,7 +1592,7 @@ if validSell
   </main>
 
   <!-- Telegram Message Preview Modal -->
-  <div id="telegram-modal" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div id="telegram-modal" style="display: none !important; pointer-events: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl relative">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
         <div class="flex items-center gap-2">
@@ -1973,12 +1981,18 @@ if validSell
         "💡 กลยุทธ์: แท่ง 15m ปิดเหนือเส้น EMA ดึงราคาสดเรียลไทม์";
       document.getElementById("tg-preview-text").textContent = txt;
       const modal = document.getElementById("telegram-modal");
-      if (modal) modal.style.display = "flex";
+      if (modal) {
+        modal.style.setProperty("display", "flex", "important");
+        modal.style.pointerEvents = "auto";
+      }
     }
 
     function closeTelegramPreview() {
       const modal = document.getElementById("telegram-modal");
-      if (modal) modal.style.display = "none";
+      if (modal) {
+        modal.style.setProperty("display", "none", "important");
+        modal.style.pointerEvents = "none";
+      }
     }
 
     async function simTrigger(asset, action) {
@@ -2164,6 +2178,43 @@ if validSell
     window.sendForecastTelegram = sendForecastTelegram;
     window.sendBroadTelegram = sendBroadTelegram;
 
+    // Fail-safe event listeners attached on DOM ready
+    document.addEventListener("DOMContentLoaded", function() {
+      console.log("DOM fully loaded and parsed. Initializing fail-safe click listeners...");
+      const tabMap = {
+        "tab-btn-m15": "m15",
+        "tab-btn-portfolio": "portfolio",
+        "tab-btn-broad": "broad",
+        "tab-btn-news": "news"
+      };
+      for (const [btnId, tabKey] of Object.entries(tabMap)) {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            switchMasterTab(tabKey);
+          });
+        }
+      }
+
+      const subtabMap = {
+        "subtab-btn-signals": "signals",
+        "subtab-btn-pine": "pine",
+        "subtab-btn-setup": "setup",
+        "subtab-btn-simulator": "simulator"
+      };
+      for (const [btnId, subKey] of Object.entries(subtabMap)) {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            switchSubTab(subKey);
+          });
+        }
+      }
+    });
+
+
     // 4. Clocks & Timers
     function updateWorldClock() {
       const now = new Date();
@@ -2238,8 +2289,8 @@ setInterval(() => {
 
 setInterval(pollTelegramUpdates, 3500);
 
-server.listen(PORT, async () => {
-  console.log('🚀 Complete All-in-One Master Terminal running on port ' + PORT);
+server.listen(PORT, '0.0.0.0', async () => {
+  console.log('🚀 Complete All-in-One Master Terminal running on 0.0.0.0:' + PORT);
   setInterval(updateLiveQuotes, 5000); // ดึงราคา Real-Time สดทุก 5 วินาที
   setInterval(scanMarket, 30 * 1000); // สแกนเทรนด์ M15 ทุก 30 วินาที
   setInterval(scanBroadMarketUniverse, 5 * 60 * 1000); // สแกน 35 บิ๊กแคปทุก 5 นาที
