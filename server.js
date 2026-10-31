@@ -1,8 +1,4 @@
-& result.indicators && result.indicators.quote && result.indicators.quote[0]) {
-      const ts = result.timestamp;
-      const q = result.indicators.quote[0];
-      const meta = result.meta || {};
-      const livePrice = meta.regularMarketPrimport http from 'http';
+import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -202,7 +198,11 @@ async function fetchDailyStockData(yahooTicker) {
     const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
     const data = await res.json();
     const result = data && data.chart && data.chart.result && data.chart.result[0];
-    if (result && result.timestamp &ice || meta.chartPreviousClose;
+    if (result && result.timestamp && result.indicators && result.indicators.quote && result.indicators.quote[0]) {
+      const ts = result.timestamp;
+      const q = result.indicators.quote[0];
+      const meta = result.meta || {};
+      const livePrice = meta.regularMarketPrice || meta.chartPreviousClose;
       const prevClose = meta.chartPreviousClose || meta.previousClose || livePrice;
       const changePct = prevClose ? Number((((livePrice - prevClose) / prevClose) * 100).toFixed(2)) : 0;
 
@@ -276,7 +276,7 @@ async function fetchM15Candles(sym) {
 }
 
 // ==========================================
-// 5. คาดเดากราฟหุ้นในพอร์ต (Chart Forecast: จะขึ้นหรือลง?)
+// 5. คาดเดากราฟหุ้นในพอร์ต (AI Chart Forecast)
 // ==========================================
 async function forecastSingleStock(sym) {
   const yahooSym = YAHOO_MAP[sym] || sym;
@@ -318,7 +318,7 @@ async function forecastSingleStock(sym) {
     dirIcon = '🟢';
     forecastTitle = 'มีโอกาสขึ้นต่อ (Bullish Trend)';
     confidence = rsi >= 52 && rsi <= 65 ? 'สูงมาก (90%)' : 'สูง (80%)';
-    rationale = 'ราคายืนเหนือเส้นแนวโน้ม 50 วันและ 21 วัน พร้อมแรงส่ง RSI ' + rsi.toFixed(0) + ' แข็งแกร่ง';
+    rationale = 'ราคายืนเหนือเส้น 50 วันและ 21 วัน พร้อมแรงส่ง RSI ' + rsi.toFixed(0) + ' แข็งแกร่ง';
   } else if (cPrice < cEMA50 && cEMA21 <= cEMA50 && rsi <= 50) {
     direction = 'DOWN';
     dirIcon = '🔴';
@@ -406,6 +406,11 @@ async function analyzeUserPortfolio() {
       healthStatus = 'WATCH';
       actionVerdict = 'WAIT_REBOUND';
       advice = '⚠️ รอกราฟเด้งกลับมาเท่าทุนแล้วแบ่งปิดกำไร';
+    } else if (item.symbol.includes('SCBTB')) {
+      healthStatus = 'WATCH';
+      actionVerdict = 'HOLD_OR_SWITCH';
+      advice = '⚠️ กองทุนหุ้นไทย ESG ขาดทุน -4.8%';
+      advice = 'หากเด้งขึ้นมาเท่าทุน พิจารณาย้ายเงินไปใส่ VOO';
     } else {
       healthStatus = 'NEUTRAL';
       actionVerdict = 'HOLD';
@@ -446,7 +451,7 @@ async function analyzeUserPortfolio() {
 }
 
 // ==========================================
-// 7. บอท Telegram อัจฉริยะ ตอบโต้กับผู้ใช้ได้ 24/7 (Interactive Telegram Bot)
+// 7. บอท Telegram คุยตอบโต้ได้ 24/7 (Interactive Telegram Bot)
 // ==========================================
 async function pollTelegramUpdates() {
   if (!BOT_TOKEN) return;
@@ -461,10 +466,9 @@ async function pollTelegramUpdates() {
         if (!msg || !msg.text) continue;
 
         const chatId = msg.chat.id;
-        CHAT_ID = String(chatId); // บันทึก Chat ID อัตโนมัติ
+        CHAT_ID = String(chatId);
         const text = msg.text.trim().toLowerCase();
 
-        // 1) คำสั่งดูพอร์ต (/portfolio หรือพิมพ์ "พอร์ต")
         if (text === '/portfolio' || text === 'พอร์ต' || text === '/port' || text === 'สรุปพอร์ต') {
           const pf = await analyzeUserPortfolio();
           const sign = pf.totalProfitTHB >= 0 ? '+' : '';
@@ -482,9 +486,7 @@ async function pollTelegramUpdates() {
           reply += '⭐ <b>วันนี้แนะนำซื้อ:</b> <code>VOO</code> (เสาหลักโตสม่ำเสมอ)\n';
           reply += '🚨 <b>น่าเป็นห่วง:</b> <code>BIDU</code> (ขาดทุน -22% แนะนำ Cut Loss)';
           await sendTelegramMessage(reply, true, chatId);
-        }
-        // 2) คำสั่งคาดเดาทิศทางกราฟหุ้น (/forecast หรือพิมพ์ "วิเคราะห์" หรือ "ทิศทาง")
-        else if (text === '/forecast' || text === 'ทิศทาง' || text === 'วิเคราะห์' || text === 'กราฟ') {
+        } else if (text === '/forecast' || text === 'ทิศทาง' || text === 'วิเคราะห์' || text === 'กราฟ') {
           let reply = '📊 <b>ผลคาดเดาทิศทางกราฟหุ้นในพอร์ตของคุณ (AI Chart Forecast)</b>\n';
           reply += 'วิเคราะห์จาก Price Action + EMA 50/200 + RSI ล่าสุด\n';
           reply += '──────────────────\n';
@@ -498,9 +500,7 @@ async function pollTelegramUpdates() {
             }
           }
           await sendTelegramMessage(reply, true, chatId);
-        }
-        // 3) ถามหุ้นรายตัว เช่น พิมพ์ "voo", "amd", "tsla", "bidu"
-        else if (['voo', 'amd', 'tsla', 'bidu', 'ttb', 'gold', 'xom', 'xlv', 'vt'].includes(text) || text.startsWith('/')) {
+        } else if (['voo', 'amd', 'tsla', 'bidu', 'ttb', 'gold', 'xom', 'xlv', 'vt'].includes(text) || text.startsWith('/')) {
           const cleanSym = text.replace('/', '').toUpperCase();
           const sym = cleanSym === 'GOLD' ? 'YLG-GOLD' : cleanSym;
           const pf = await analyzeUserPortfolio();
@@ -521,9 +521,7 @@ async function pollTelegramUpdates() {
             reply += '📌 คำแนะนำหมอพอร์ต: <b>' + item.advice + '</b>';
             await sendTelegramMessage(reply, true, chatId);
           }
-        }
-        // คำสั่งอื่นๆ / เมนูช่วยเหลือ
-        else if (text === '/help' || text === 'เมนู' || text === 'ช่วย') {
+        } else if (text === '/help' || text === 'เมนู' || text === 'ช่วย') {
           let reply = '🤖 <b>สวัสดีครับ! ผมคือบอทผู้ช่วยเทรดและดูแลพอร์ตของคุณ</b>\n\n';
           reply += 'คุณสามารถพิมพ์ถามผมได้ตลอดเวลา เช่น:\n';
           reply += '• พิมพ์ <b>พอร์ต</b> หรือ <b>/portfolio</b> -> ดูสรุปกำไรขาดทุนพอร์ตสด\n';
@@ -591,7 +589,6 @@ async function scanMarket() {
     } catch (e) {}
   }
 
-  // อัปเดตราคาพอร์ตแบบ Real-time ทุก 30 วินาที
   const pf = await analyzeUserPortfolio();
 
   lastScanTime = new Date().toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -620,7 +617,6 @@ app.get('/api/my-portfolio', async (req, res) => {
   res.json(pf);
 });
 
-// API ส่งสรุปผลกระทบข่าวเศรษฐกิจแรงเข้า Telegram ทันที
 app.post('/api/send-news-flash', async (req, res) => {
   const { title, actual, forecast, impact, analysis } = req.body;
   let msg = '🚨 <b>รายงานด่วนผลกระทบข่าวเศรษฐกิจ (Market News Flash)</b>\n';
@@ -628,7 +624,7 @@ app.post('/api/send-news-flash', async (req, res) => {
   msg += '📰 <b>ข่าว:</b> ' + (title || 'ตัวเลขเงินเฟ้อ CPI สหรัฐฯ') + '\n';
   msg += '📊 ตัวเลขจริง: <b>' + (actual || '2.8%') + '</b> | คาดการณ์: ' + (forecast || '3.1%') + '\n';
   msg += '💥 <b>ทิศทางตลาด:</b> ' + (impact || '🟢 หนุนทองคำและหุ้นพุ่งขึ้นแรง!') + '\n';
-  msg += '💡 <b>ทำไมตลาดถึงขึ้น/ลง:</b> <i>' + (analysis || 'ตัวเลขเงินเฟ้อชะลอตัวเร็วกว่าคาด ตลาดคลายกังวลเรื่องดอกเบี้ย ดอลลาร์อ่อนค่า ส่งผลให้ทองคำและหุ้นบวกทันที') + '</i>\n';
+  msg += '💡 <b>ทำไมตลาดถึงขึ้น/ลง:</b> <i>' + (analysis || 'เงินเฟ้อชะลอตัวลงเร็วกว่าคาด ตลาดคลายกังวลเรื่องดอกเบี้ย ดอลลาร์อ่อนค่าลงทันที') + '</i>\n';
   msg += '──────────────────\n';
   msg += '🎯 <b>คำแนะนำ:</b> รอย่อตัวเข้าตามน้ำ ห้ามกระโดดไล่ราคาตอนข่าวออกวินาทีแรก';
 
@@ -636,7 +632,6 @@ app.post('/api/send-news-flash', async (req, res) => {
   res.json({ ok: ok });
 });
 
-// API ส่งผลคาดเดาทิศทางกราฟหุ้นในพอร์ตเข้า Telegram
 app.post('/api/send-forecast-telegram', async (req, res) => {
   let msg = '📊 <b>รายงานคาดเดาทิศทางกราฟหุ้นในพอร์ตของคุณ (ก่อนเปิดตลาด 20:15 น.)</b>\n';
   msg += 'วิเคราะห์จาก Price Action + EMA 50/200 + RSI รายวัน\n';
@@ -1070,5 +1065,4 @@ server.listen(PORT, async () => {
   setInterval(scanMarket, 30 * 1000); // อัปเดตราคาพอร์ตสดทุก 30 วินาที
   scanMarket();
   setTimeout(analyzeUserPortfolio, 2000);
-});;
 });
