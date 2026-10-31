@@ -1111,6 +1111,10 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
     .flash-up { animation: flashGreen 0.9s ease-out; }
     .flash-down { animation: flashRed 0.9s ease-out; }
+    .view-tab { display: none !important; }
+    .view-tab.active { display: flex !important; }
+    .sub-panel { display: none !important; }
+    .sub-panel.active { display: block !important; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 antialiased">
@@ -1163,22 +1167,22 @@ const HTML_PAGE = `<!DOCTYPE html>
   <main class="max-w-7xl mx-auto w-full p-4 flex-1 flex flex-col gap-5">
     <!-- 4 Master Tabs -->
     <div class="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
-      <button id="tab-btn-m15" onclick="switchMasterTab('m15')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md">
+      <button id="tab-btn-m15" onclick="switchMasterTab('m15')" class="master-tab-btn px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md">
         ⚡ 1. หน้าเทรดหลักแท่ง 15 นาที (M15 Terminal)
       </button>
-      <button id="tab-btn-portfolio" onclick="switchMasterTab('portfolio')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+      <button id="tab-btn-portfolio" onclick="switchMasterTab('portfolio')" class="master-tab-btn px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">
         💼 2. เช็คสุขภาพพอร์ต 11 หุ้น & ทำนายกราฟ (Portfolio Doctor & Forecast)
       </button>
-      <button id="tab-btn-broad" onclick="switchMasterTab('broad')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+      <button id="tab-btn-broad" onclick="switchMasterTab('broad')" class="master-tab-btn px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">
         🌟 3. หน้าหุ้นไหนดี & สแกนก้นหลุมรอบเดือน (Broad Market Screener)
       </button>
-      <button id="tab-btn-news" onclick="switchMasterTab('news')" class="px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+      <button id="tab-btn-news" onclick="switchMasterTab('news')" class="master-tab-btn px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700">
         📰 4. ข่าวด่วน & ปัจจัยกระทบตลาด (Breaking News & Impact Radar)
       </button>
     </div>
 
     <!-- TAB 1: M15 PRO TRADING TERMINAL -->
-    <div id="view-m15" class="flex flex-col gap-4">
+    <div id="view-m15" class="view-tab active flex-col gap-4">
       <!-- 5-Asset Radar -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <div onclick="setAsset('OANDA:XAUUSD','XAU/USD')" class="cursor-pointer bg-slate-900 hover:bg-slate-800/80 border-2 border-amber-500/80 rounded-xl p-3 transition">
@@ -1284,7 +1288,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         </div>
 
         <!-- SubTab 1: History -->
-        <div id="subtab-panel-signals" class="subtab-panel">
+        <div id="subtab-panel-signals" class="sub-panel active">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead>
@@ -1307,7 +1311,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         </div>
 
         <!-- SubTab 2: Pine Script v5 -->
-        <div id="subtab-panel-pine" style="display: none;" class="subtab-panel space-y-3">
+        <div id="subtab-panel-pine" class="sub-panel space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <h4 class="font-bold text-sm text-white">สคริปต์ Pine Script v5 (TradingView)</h4>
@@ -1384,7 +1388,7 @@ if validSell
         </div>
 
         <!-- SubTab 3: Setup -->
-        <div id="subtab-panel-setup" style="display: none;" class="subtab-panel space-y-4 text-xs">
+        <div id="subtab-panel-setup" class="sub-panel space-y-4 text-xs">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
               <h5 class="font-bold text-white text-sm flex items-center gap-2"><span>✈️</span> วิธีเชื่อมต่อ Telegram Bot</h5>
@@ -1407,7 +1411,7 @@ if validSell
         </div>
 
         <!-- SubTab 4: Simulator -->
-        <div id="subtab-panel-simulator" style="display: none;" class="subtab-panel">
+        <div id="subtab-panel-simulator" class="sub-panel">
           <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
             <div class="mb-4">
               <h4 class="font-bold text-sm text-white">ทดสอบสร้างสัญญาณเสมือนจริง (Signal Simulator)</h4>
@@ -1437,7 +1441,7 @@ if validSell
     </div>
 
     <!-- TAB 2: MY PERSONAL PORTFOLIO DOCTOR & FORECAST -->
-    <div id="view-portfolio" style="display: none;" class="flex flex-col gap-5">
+    <div id="view-portfolio" class="view-tab flex-col gap-5">
       <!-- Portfolio Health & Stats -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
@@ -1559,7 +1563,7 @@ if validSell
     </div>
 
     <!-- TAB 3: BROAD MARKET SCREENER -->
-    <div id="view-broad" style="display: none;" class="flex flex-col gap-5">
+    <div id="view-broad" class="view-tab flex-col gap-5">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
@@ -1634,7 +1638,7 @@ if validSell
     </div>
 
     <!-- TAB 4: BREAKING NEWS & IMPACT RADAR -->
-    <div id="view-news" style="display: none;" class="flex flex-col gap-5">
+    <div id="view-news" class="view-tab flex-col gap-5">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
@@ -1909,7 +1913,7 @@ if validSell
 
       // Render Holdings Table
       const tbody = document.getElementById("pf-tbody");
-      if (tbody && data.holdings) {
+      if (tbody && data.holdings && Array.isArray(data.holdings) && data.holdings.length > 0) {
         tbody.innerHTML = data.holdings.map(function(item) {
           const pCls = item.profitTHB >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";
           const pSign = item.profitTHB >= 0 ? "+" : "";
@@ -1994,39 +1998,37 @@ if validSell
     function switchMasterTab(tab) {
       activeMasterTab = tab;
       try { history.replaceState(null, '', '#' + tab); } catch(e) {}
-      const tabs = ["m15", "portfolio", "broad", "news"];
-      tabs.forEach(t => {
-        const btn = document.getElementById("tab-btn-" + t);
-        const view = document.getElementById("view-" + t);
-        if (!btn || !view) return;
-        if (t === tab) {
-          btn.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md";
-          view.style.display = "flex";
-        } else {
-          btn.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700";
-          view.style.display = "none";
-        }
+      document.querySelectorAll('.view-tab').forEach(function(v) { v.classList.remove('active'); });
+      document.querySelectorAll('.master-tab-btn').forEach(function(b) {
+        b.className = "master-tab-btn px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700";
       });
-      if (tab === "portfolio") loadMyPortfolio();
-      if (tab === "broad" && broadMarketList.length === 0) loadBroadMarket();
-      if (tab === "news" && newsList.length === 0) loadNews();
+
+      const activeView = document.getElementById('view-' + tab);
+      const activeBtn = document.getElementById('tab-btn-' + tab);
+      if (activeView) activeView.classList.add('active');
+      if (activeBtn) activeBtn.className = "master-tab-btn px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md";
+
+      // Smooth background sync without wiping out pre-rendered HTML
+      if (tab === "portfolio") {
+        fetch("/api/my-portfolio").then(r => r.json()).then(updatePortfolioUI).catch(() => {});
+      } else if (tab === "broad" && broadMarketList.length === 0) {
+        loadBroadMarket();
+      } else if (tab === "news" && newsList.length === 0) {
+        loadNews();
+      }
     }
 
     function switchSubTab(sub) {
       activeSubTab = sub;
-      const subs = ["signals", "pine", "setup", "simulator"];
-      subs.forEach(s => {
-        const btn = document.getElementById("subtab-btn-" + s);
-        const panel = document.getElementById("subtab-panel-" + s);
-        if (!btn || !panel) return;
-        if (s === sub) {
-          btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-800 text-emerald-400 border border-emerald-500/30";
-          panel.style.display = "block";
-        } else {
-          btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white hover:bg-slate-800";
-          panel.style.display = "none";
-        }
+      document.querySelectorAll('.sub-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelectorAll('.subtab-btn').forEach(function(b) {
+        b.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white hover:bg-slate-800";
       });
+
+      const activePanel = document.getElementById('subtab-panel-' + sub);
+      const activeBtn = document.getElementById('subtab-btn-' + sub);
+      if (activePanel) activePanel.classList.add('active');
+      if (activeBtn) activeBtn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-800 text-emerald-400 border border-emerald-500/30";
     }
 
     function setAsset(tvSym, label) {
@@ -2414,6 +2416,11 @@ server.listen(PORT, '0.0.0.0', async () => {
   setInterval(scanMarket, 30 * 1000); // สแกนเทรนด์ M15 ทุก 30 วินาที
   setInterval(scanBroadMarketUniverse, 5 * 60 * 1000); // สแกน 35 บิ๊กแคปทุก 5 นาที
   
+  updateLiveQuotes();
+  scanMarket();
+  setTimeout(analyzeUserPortfolio, 1500);
+  setTimeout(scanBroadMarketUniverse, 3000);
+});
   updateLiveQuotes();
   scanMarket();
   setTimeout(analyzeUserPortfolio, 1500);
