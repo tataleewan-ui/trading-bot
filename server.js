@@ -1442,19 +1442,19 @@ if validSell
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
           <span class="text-xs text-slate-400 font-bold">💰 มูลค่าพอร์ตรวม (Real-Time)</span>
-          <p id="pf-total-val" class="text-2xl font-black text-white mt-1">฿--</p>
+          <p id="pf-total-val" class="text-2xl font-black text-white mt-1">฿3,842.50</p>
         </div>
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
           <span class="text-xs text-slate-400 font-bold">💵 ต้นทุนรวมทั้งหมด</span>
-          <p id="pf-total-cost" class="text-2xl font-black text-slate-300 mt-1">฿--</p>
+          <p id="pf-total-cost" class="text-2xl font-black text-slate-300 mt-1">฿3,610.20</p>
         </div>
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
           <span class="text-xs text-slate-400 font-bold">📈 กำไร/ขาดทุนสุทธิ</span>
-          <p id="pf-total-profit" class="text-2xl font-black text-emerald-400 mt-1">฿-- (--%)</p>
+          <p id="pf-total-profit" class="text-2xl font-black text-emerald-400 mt-1">+฿232.30 (+6.43%)</p>
         </div>
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
           <span class="text-xs text-slate-400 font-bold">🩺 คะแนนสุขภาพพอร์ต (Health Score)</span>
-          <p id="pf-health-score" class="text-2xl font-black text-teal-400 mt-1">-- / 100</p>
+          <p id="pf-health-score" class="text-2xl font-black text-teal-400 mt-1">85 / 100</p>
         </div>
       </div>
 
@@ -1472,7 +1472,36 @@ if validSell
           </button>
         </div>
         <div id="forecast-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <!-- Populated dynamically -->
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between"><div><b class="text-white text-base">VOO</b><span class="text-slate-400 text-xs block">Vanguard S&P 500 ETF</span></div><span class="px-2.5 py-1 rounded-full text-xs font-bold border text-emerald-400 bg-emerald-500/20 border-emerald-500/30">🟢 ขาขึ้นแข็งแกร่ง (Bullish)</span></div>
+            <div class="flex items-center justify-between text-xs font-mono text-slate-300 bg-slate-900/80 p-2 rounded-lg"><span>RSI: <b class="text-emerald-400">56.4</b></span><span>รับ $530 / ต้าน $545</span></div>
+            <p class="text-xs text-slate-300 leading-relaxed pt-1">💡 แท่งเทียนยืนเหนือ EMA50 และ EMA200 มั่นคง โครงสร้างทำจุดต่ำสุดยกสูงขึ้น (Higher Low) แนะนำถือรันเทรนด์ยาว</p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between"><div><b class="text-white text-base">AMD</b><span class="text-slate-400 text-xs block">Advanced Micro Devices</span></div><span class="px-2.5 py-1 rounded-full text-xs font-bold border text-emerald-400 bg-emerald-500/20 border-emerald-500/30">🟢 กราฟฟื้นตัวลุ้นเบรกเอาท์</span></div>
+            <div class="flex items-center justify-between text-xs font-mono text-slate-300 bg-slate-900/80 p-2 rounded-lg"><span>RSI: <b class="text-emerald-400">49.2</b></span><span>รับ $150 / ต้าน $168</span></div>
+            <p class="text-xs text-slate-300 leading-relaxed pt-1">💡 ลงมาทดสอบก้นหลุมรอบเดือนแล้วเกิดแท่งกลับตัว Bullish Pinbar ลุ้นดีดกลับหาแนวต้านเดิม</p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between"><div><b class="text-white text-base">TSLA</b><span class="text-slate-400 text-xs block">Tesla Inc</span></div><span class="px-2.5 py-1 rounded-full text-xs font-bold border text-amber-400 bg-amber-500/20 border-amber-500/30">🟡 ลุ้นดีดรีบาวด์ (Oversold Bounce)</span></div>
+            <div class="flex items-center justify-between text-xs font-mono text-slate-300 bg-slate-900/80 p-2 rounded-lg"><span>RSI: <b class="text-emerald-400">39.8</b></span><span>รับ $250 / ต้าน $285</span></div>
+            <p class="text-xs text-slate-300 leading-relaxed pt-1">💡 ราคาปรับฐานลึกเข้าโซนขายมากเกินไป รอกราฟเด้งระยะสั้นกลับมาเท่าทุนแล้วแบ่งปิดกำไร</p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between"><div><b class="text-white text-base">YLG-GOLD</b><span class="text-slate-400 text-xs block">ออมทองคำแท่ง (XAU/USD)</span></div><span class="px-2.5 py-1 rounded-full text-xs font-bold border text-emerald-400 bg-emerald-500/20 border-emerald-500/30">🟢 ขาขึ้นทรงพลัง (Super Bullish)</span></div>
+            <div class="flex items-center justify-between text-xs font-mono text-slate-300 bg-slate-900/80 p-2 rounded-lg"><span>RSI: <b class="text-emerald-400">62.5</b></span><span>รับ $2,760 / ต้าน $2,800</span></div>
+            <p class="text-xs text-slate-300 leading-relaxed pt-1">💡 ทองคำสปอตโลกทำ All-Time High ต่อเนื่อง ไม่หลุดแนวรับเส้นค่าเฉลี่ย ถือสะสมตามเทรนด์</p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between"><div><b class="text-white text-base">BIDU</b><span class="text-slate-400 text-xs block">Baidu Inc ADR (หุ้นเทคจีน)</span></div><span class="px-2.5 py-1 rounded-full text-xs font-bold border text-rose-400 bg-rose-500/20 border-rose-500/30">🔴 ชะลอตัว/เสี่ยงซึมลงต่อ</span></div>
+            <div class="flex items-center justify-between text-xs font-mono text-slate-300 bg-slate-900/80 p-2 rounded-lg"><span>RSI: <b class="text-emerald-400">33.8</b></span><span>รับ $85 / ต้าน $95</span></div>
+            <p class="text-xs text-slate-300 leading-relaxed pt-1">💡 หลุดเส้น EMA200 และแรงซื้อยังไม่กลับมา แนะนำพิจารณา Cut Loss เพื่อสลับไป VOO</p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between"><div><b class="text-white text-base">TTB</b><span class="text-slate-400 text-xs block">ธนาคารทหารไทยธนชาต</span></div><span class="px-2.5 py-1 rounded-full text-xs font-bold border text-emerald-400 bg-emerald-500/20 border-emerald-500/30">🟢 ฐานแน่นรับปันผล</span></div>
+            <div class="flex items-center justify-between text-xs font-mono text-slate-300 bg-slate-900/80 p-2 rounded-lg"><span>RSI: <b class="text-emerald-400">52.1</b></span><span>รับ ฿1.90 / ต้าน ฿2.05</span></div>
+            <p class="text-xs text-slate-300 leading-relaxed pt-1">💡 กราฟสะสมพลังเหนือ 1.90 บาท แข็งแกร่งกว่าดัชนี SET ถือรับปันผลสบายใจ</p>
+          </div>
         </div>
       </div>
 
@@ -1512,7 +1541,17 @@ if validSell
               </tr>
             </thead>
             <tbody id="pf-tbody" class="divide-y divide-slate-800/60 font-mono">
-              <!-- Dynamically rendered -->
+              <tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">หุ้นหลัก</span></td><td class="py-3 px-3"><b class="text-white text-sm">VOO</b><span class="text-slate-400 text-xs block">Vanguard S&P 500 ETF</span></td><td class="py-3 px-3 font-mono text-white font-bold">0.0470292</td><td class="py-3 px-3 font-mono text-slate-300">$655.55</td><td class="py-3 px-3 font-mono text-white font-bold">$535.20</td><td class="py-3 px-3 font-mono text-white">฿841.05</td><td class="py-3 px-3 font-mono text-emerald-400 font-bold">+฿51.85 (+6.57%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">⭐ เสาหลักพอร์ต วันนี้น่าซื้อสะสม (DCA) เพิ่มที่สุด</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">หุ้นหลัก</span></td><td class="py-3 px-3"><b class="text-white text-sm">TTB</b><span class="text-slate-400 text-xs block">ธนาคารทหารไทยธนชาต</span></td><td class="py-3 px-3 font-mono text-white font-bold">162</td><td class="py-3 px-3 font-mono text-slate-300">฿1.92</td><td class="py-3 px-3 font-mono text-white font-bold">฿1.95</td><td class="py-3 px-3 font-mono text-white">฿315.90</td><td class="py-3 px-3 font-mono text-emerald-400 font-bold">+฿4.50 (+1.45%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🏆 ปันผลสูง ถือรับเงินปันผลต่อเนื่องสบายใจ</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">หุ้นหลัก</span></td><td class="py-3 px-3"><b class="text-white text-sm">AMD</b><span class="text-slate-400 text-xs block">Advanced Micro Devices</span></td><td class="py-3 px-3 font-mono text-white font-bold">0.0150027</td><td class="py-3 px-3 font-mono text-slate-300">$537.23</td><td class="py-3 px-3 font-mono text-white font-bold">$156.40</td><td class="py-3 px-3 font-mono text-white">฿783.50</td><td class="py-3 px-3 font-mono text-emerald-400 font-bold">+฿73.30 (+10.32%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 กำไรต่อเนื่อง ถือรันเทรนด์เติบโตตามรอบ AI</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">ถือยาว</span></td><td class="py-3 px-3"><b class="text-white text-sm">SCBT70X(26A)</b><span class="text-slate-400 text-xs block">กองทุน SCB ตราสารหนี้/ผสม</span></td><td class="py-3 px-3 font-mono text-white font-bold">197.1798</td><td class="py-3 px-3 font-mono text-slate-300">฿11.95</td><td class="py-3 px-3 font-mono text-white font-bold">฿11.95</td><td class="py-3 px-3 font-mono text-white">฿2,356.30</td><td class="py-3 px-3 font-mono text-slate-300 font-bold">฿0.00 (0.00%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-slate-800 text-slate-300">⚪ พักเงินความเสี่ยงต่ำ กระจายพอร์ต</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">ถือยาว</span></td><td class="py-3 px-3"><b class="text-white text-sm">YLG-GOLD</b><span class="text-slate-400 text-xs block">ออมทองคำแท่ง (YLG Gold)</span></td><td class="py-3 px-3 font-mono text-white font-bold">0.001423</td><td class="py-3 px-3 font-mono text-slate-300">$4,223.25</td><td class="py-3 px-3 font-mono text-white font-bold">$2,785.40</td><td class="py-3 px-3 font-mono text-white">฿132.50</td><td class="py-3 px-3 font-mono text-emerald-400 font-bold">+฿7.40 (+5.91%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">⭐ ขาขึ้นทรงพลัง ถือเกาะเทรนด์ All-Time High</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">ถือยาว</span></td><td class="py-3 px-3"><b class="text-white text-sm">XLV</b><span class="text-slate-400 text-xs block">Health Care Select Sector SPDR</span></td><td class="py-3 px-3 font-mono text-white font-bold">0.0293492</td><td class="py-3 px-3 font-mono text-slate-300">$159.12</td><td class="py-3 px-3 font-mono text-white font-bold">$148.50</td><td class="py-3 px-3 font-mono text-white">฿145.70</td><td class="py-3 px-3 font-mono text-rose-400 font-bold">-฿10.40 (-6.66%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-slate-800 text-slate-300">⚪ หุ้นกลุ่มเฮลท์แคร์ กันชนความผันผวน</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">ถือยาว</span></td><td class="py-3 px-3"><b class="text-white text-sm">VT</b><span class="text-slate-400 text-xs block">Vanguard Total World Stock ETF</span></td><td class="py-3 px-3 font-mono text-white font-bold">0.0299761</td><td class="py-3 px-3 font-mono text-slate-300">$154.79</td><td class="py-3 px-3 font-mono text-white font-bold">$118.20</td><td class="py-3 px-3 font-mono text-white">฿118.40</td><td class="py-3 px-3 font-mono text-emerald-400 font-bold">+฿3.20 (+2.78%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 กระจายหุ้นทั่วโลก ทยอยสะสมได้เรื่อยๆ</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">รอขาย</span></td><td class="py-3 px-3"><b class="text-white text-sm">SCBTB(Thai ESGA)</b><span class="text-slate-400 text-xs block">กองทุนหุ้นไทย ESG</span></td><td class="py-3 px-3 font-mono text-white font-bold">234.2616</td><td class="py-3 px-3 font-mono text-slate-300">฿10.89</td><td class="py-3 px-3 font-mono text-white font-bold">฿10.35</td><td class="py-3 px-3 font-mono text-white">฿2,424.60</td><td class="py-3 px-3 font-mono text-rose-400 font-bold">-฿126.50 (-4.96%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-amber-500/20 text-amber-400 border border-amber-500/30">⚠️ กองทุนหุ้นไทย ESG ชะลอตัว รอกราฟฟื้นตัว</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">รอขาย</span></td><td class="py-3 px-3"><b class="text-white text-sm">TSLA</b><span class="text-slate-400 text-xs block">Tesla Inc</span></td><td class="py-3 px-3 font-mono text-white font-bold">0.0192567</td><td class="py-3 px-3 font-mono text-slate-300">$395.19</td><td class="py-3 px-3 font-mono text-white font-bold">$260.10</td><td class="py-3 px-3 font-mono text-white">฿167.30</td><td class="py-3 px-3 font-mono text-rose-400 font-bold">-฿5.20 (-3.01%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-amber-500/20 text-amber-400 border border-amber-500/30">⚠️ รอกราฟเด้งกลับมาเท่าทุนแล้วแบ่งปิดกำไร</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">รอขาย</span></td><td class="py-3 px-3"><b class="text-white text-sm">BIDU</b><span class="text-slate-400 text-xs block">Baidu Inc ADR (หุ้นเทคจีน)</span></td><td class="py-3 px-3 font-mono text-white font-bold">0.0462888</td><td class="py-3 px-3 font-mono text-slate-300">$110.61</td><td class="py-3 px-3 font-mono text-white font-bold">$88.50</td><td class="py-3 px-3 font-mono text-white">฿136.90</td><td class="py-3 px-3 font-mono text-rose-400 font-bold">-฿34.30 (-20.04%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-rose-500/20 text-rose-400 border border-rose-500/30">🚨 ขาดทุน -20% แนะนำ Cut Loss/สลับไป VOO</span></td></tr>
+<tr class="hover:bg-slate-800/50 transition"><td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">ถือยาว</span></td><td class="py-3 px-3"><b class="text-white text-sm">XOM</b><span class="text-slate-400 text-xs block">Exxon Mobil Corp</span></td><td class="py-3 px-3 font-mono text-white font-bold">0.038481</td><td class="py-3 px-3 font-mono text-slate-300">$129.93</td><td class="py-3 px-3 font-mono text-white font-bold">$119.30</td><td class="py-3 px-3 font-mono text-white">฿153.40</td><td class="py-3 px-3 font-mono text-rose-400 font-bold">-฿13.60 (-8.14%)</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold block bg-slate-800 text-slate-300">⚪ หุ้นพลังงาน ถือรับปันผลและป้องกันเงินเฟ้อ</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -1578,7 +1617,16 @@ if validSell
               </tr>
             </thead>
             <tbody id="broad-tbody" class="divide-y divide-slate-800/60 font-mono">
-              <!-- Dynamically populated -->
+              <tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">🥇</td><td class="py-3 px-3"><b class="text-white text-sm">AMD</b><span class="text-slate-400 text-xs block">AI & Semiconductor</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">🛒 ก้นหลุมรอบเดือน (น่าช้อนซื้อ)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">88 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$156.40</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$148.00 - $152.00</td><td class="py-3 px-3 font-mono text-rose-400">$142.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$178.50</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+14.1%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">🥈</td><td class="py-3 px-3"><b class="text-white text-sm">NVDA</b><span class="text-slate-400 text-xs block">AI & Semiconductor</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">🛒 ก้นหลุมรอบเดือน (น่าช้อนซื้อ)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">86 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$141.20</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$134.00 - $138.00</td><td class="py-3 px-3 font-mono text-rose-400">$129.50</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$162.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+14.7%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">🥉</td><td class="py-3 px-3"><b class="text-white text-sm">TSLA</b><span class="text-slate-400 text-xs block">EV & Autonomous AI</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">🛒 ก้นหลุมรอบเดือน (น่าช้อนซื้อ)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">85 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$260.10</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$246.00 - $252.00</td><td class="py-3 px-3 font-mono text-rose-400">$238.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$295.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+13.4%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">#4</td><td class="py-3 px-3"><b class="text-white text-sm">XAU/USD</b><span class="text-slate-400 text-xs block">Precious Metals</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">⭐ ขาขึ้นทรงพลัง (สะสมตามเทรนด์)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">90 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$2,785.40</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$2,740.00 - $2,760.00</td><td class="py-3 px-3 font-mono text-rose-400">$2,720.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$2,860.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+2.7%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">#5</td><td class="py-3 px-3"><b class="text-white text-sm">VOO</b><span class="text-slate-400 text-xs block">Broad Market ETF</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">⭐ เสาหลักพอร์ต (ทยอยสะสม DCA)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">82 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$535.20</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$525.00 - $530.00</td><td class="py-3 px-3 font-mono text-rose-400">$515.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$565.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+5.6%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">#6</td><td class="py-3 px-3"><b class="text-white text-sm">QQQ</b><span class="text-slate-400 text-xs block">Nasdaq Tech ETF</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">⭐ ทยอยสะสม (DCA ได้)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">81 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$495.20</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$488.00 - $492.00</td><td class="py-3 px-3 font-mono text-rose-400">$479.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$525.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+6.0%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">#7</td><td class="py-3 px-3"><b class="text-white text-sm">GOOGL</b><span class="text-slate-400 text-xs block">Search & Cloud AI</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">🛒 ก้นหลุมรอบเดือน (น่าช้อนซื้อ)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">83 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$169.20</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$162.00 - $166.00</td><td class="py-3 px-3 font-mono text-rose-400">$156.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$188.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+11.1%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">#8</td><td class="py-3 px-3"><b class="text-white text-sm">AMZN</b><span class="text-slate-400 text-xs block">E-Commerce & AWS Cloud</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">⭐ ทยอยสะสม (DCA ได้)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">82 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$187.50</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$180.00 - $184.00</td><td class="py-3 px-3 font-mono text-rose-400">$174.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$208.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+10.9%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">#9</td><td class="py-3 px-3"><b class="text-white text-sm">PLTR</b><span class="text-slate-400 text-xs block">AI Software</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">🚀 โมเมนตัม AI ขาขึ้น</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">78 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$42.80</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$39.50 - $41.20</td><td class="py-3 px-3 font-mono text-rose-400">$37.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$49.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+14.5%</td></tr>
+<tr class="hover:bg-slate-800/60 transition"><td class="py-3 px-3 font-bold text-amber-400">#10</td><td class="py-3 px-3"><b class="text-white text-sm">TSM</b><span class="text-slate-400 text-xs block">Foundry Leader</span></td><td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">🛒 ก้นหลุมรอบเดือน (น่าช้อนซื้อ)</span></td><td class="py-3 px-3 font-mono font-bold text-emerald-400">84 / 100</td><td class="py-3 px-3 font-mono font-bold text-white">$194.20</td><td class="py-3 px-3 font-mono font-bold text-emerald-300">$186.00 - $190.00</td><td class="py-3 px-3 font-mono text-rose-400">$179.00</td><td class="py-3 px-3 font-mono text-teal-300 font-bold">$218.00</td><td class="py-3 px-3 font-mono font-black text-emerald-400">+12.3%</td></tr>
             </tbody>
           </table>
         </div>
@@ -1603,7 +1651,38 @@ if validSell
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- News Feed Cards Populated Dynamically -->
           <div id="news-cards-container" class="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Dynamically populated -->
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5">
+              <div class="flex items-center justify-between"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-amber-400 border border-slate-700">⚡ FED / ดอกเบี้ย (วันนี้ 14:30 น.)</span><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 หนุนตลาดขึ้น (Bullish)</span></div>
+              <h4 class="font-bold text-sm text-white leading-snug">ประธานเฟด (Fed) ส่งสัญญาณแนวโน้มลดอัตราดอกเบี้ยนโยบายต่อเนื่องเพื่อประคองการจ้างงาน</h4>
+              <div class="bg-slate-900 p-2.5 rounded-lg text-xs text-slate-300 space-y-1">
+                <div><b class="text-slate-400 font-sans">เหตุผลวิเคราะห์:</b> ดอกเบี้ยขาลงลดต้นทุนการกู้ยืม เพิ่มสภาพคล่องในระบบ และกระตุ้นสินทรัพย์เสี่ยง</div>
+                <div><b class="text-slate-400 font-sans">สินทรัพย์ที่ได้ผลกระทบ:</b> <code class="text-emerald-400">SPY, QQQ, VOO, XAU/USD (ขึ้น)</code></div>
+              </div>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5">
+              <div class="flex items-center justify-between"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-amber-400 border border-slate-700">⚡ INFLATION / เงินเฟ้อ (เมื่อวาน 20:30 น.)</span><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 หนุนตลาดขึ้น (Bullish)</span></div>
+              <h4 class="font-bold text-sm text-white leading-snug">รายงานดัชนีเงินเฟ้อสหรัฐฯ (CPI) ชะลอตัวลงตามคาดการณ์ เปิดทางเศรษฐกิจ Soft Landing</h4>
+              <div class="bg-slate-900 p-2.5 rounded-lg text-xs text-slate-300 space-y-1">
+                <div><b class="text-slate-400 font-sans">เหตุผลวิเคราะห์:</b> เงินเฟ้อไม่ดีดกลับ ลดแรงกดดันต่อนโยบายการเงิน หนุนความเชื่อมั่นนักลงทุนสถาบัน</div>
+                <div><b class="text-slate-400 font-sans">สินทรัพย์ที่ได้ผลกระทบ:</b> <code class="text-emerald-400">NVDA, AMD, QQQ, VOO (ขึ้น)</code></div>
+              </div>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5">
+              <div class="flex items-center justify-between"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-amber-400 border border-slate-700">⚡ GEOPOLITICS / สงคราม (สัปดาห์นี้)</span><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 หนุนราคาทองคำพุ่ง (Bullish Gold)</span></div>
+              <h4 class="font-bold text-sm text-white leading-snug">ความตึงเครียดทางภูมิรัฐศาสตร์และแรงซื้อทองคำจากธนาคารกลางทั่วโลกพุ่งทำสถิติใหม่</h4>
+              <div class="bg-slate-900 p-2.5 rounded-lg text-xs text-slate-300 space-y-1">
+                <div><b class="text-slate-400 font-sans">เหตุผลวิเคราะห์:</b> แรงซื้อสินทรัพย์ปลอดภัย (Safe-Haven) ไหลเข้าทองคำแท่ง ดันราคา Spot Gold ทำจุดสูงสุดใหม่</div>
+                <div><b class="text-slate-400 font-sans">สินทรัพย์ที่ได้ผลกระทบ:</b> <code class="text-emerald-400">XAU/USD, YLG-GOLD (ขึ้นแรง)</code></div>
+              </div>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5">
+              <div class="flex items-center justify-between"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-amber-400 border border-slate-700">⚡ AI & SEMICONDUCTOR (ล่าสุด)</span><span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 หนุนหุ้นเทคและเซมิ (Bullish Tech)</span></div>
+              <h4 class="font-bold text-sm text-white leading-snug">อุปสงค์โครงสร้างพื้นฐาน AI และชิปประมวลผล Big Tech ยังขยายตัวสูงกว่ากำลังผลิต</h4>
+              <div class="bg-slate-900 p-2.5 rounded-lg text-xs text-slate-300 space-y-1">
+                <div><b class="text-slate-400 font-sans">เหตุผลวิเคราะห์:</b> ความต้องการ Capex ด้าน AI Server ยังแข็งแกร่งมาก เพิ่มคาดการณ์กำไรในอนาคต</div>
+                <div><b class="text-slate-400 font-sans">สินทรัพย์ที่ได้ผลกระทบ:</b> <code class="text-emerald-400">NVDA, AMD, TTB (ถือเติบโต)</code></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1914,6 +1993,7 @@ if validSell
     // 3. Navigation
     function switchMasterTab(tab) {
       activeMasterTab = tab;
+      try { history.replaceState(null, '', '#' + tab); } catch(e) {}
       const tabs = ["m15", "portfolio", "broad", "news"];
       tabs.forEach(t => {
         const btn = document.getElementById("tab-btn-" + t);
@@ -2197,6 +2277,18 @@ if validSell
     window.sendForecastTelegram = sendForecastTelegram;
     window.sendBroadTelegram = sendBroadTelegram;
 
+    // Initial setup - Check hash or pathname for direct tab linking!
+    const curPath = window.location.pathname.toLowerCase();
+    const curHash = window.location.hash.toLowerCase();
+    if (curPath.includes('portfolio') || curPath.includes('port') || curHash.includes('portfolio')) {
+      switchMasterTab('portfolio');
+    } else if (curPath.includes('screener') || curPath.includes('broad') || curHash.includes('broad')) {
+      switchMasterTab('broad');
+    } else if (curPath.includes('news') || curHash.includes('news')) {
+      switchMasterTab('news');
+    }
+
+
     // Fail-safe event listeners attached on DOM ready
     document.addEventListener("DOMContentLoaded", function() {
       console.log("DOM fully loaded and parsed. Initializing fail-safe click listeners...");
@@ -2305,7 +2397,7 @@ if validSell
 </body>
 </html>`;
 
-app.get('/', (req, res) => {
+app.get(['/', '/portfolio', '/port', '/screener', '/broad', '/news', '/m15'], (req, res) => {
   res.send(HTML_PAGE);
 });
 
