@@ -1,8 +1,8 @@
-import http from 'http';
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { WebSocketServer, WebSocket } from 'ws';
+const http = require('http');
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const { WebSocketServer, WebSocket } = require('ws');
 
 dotenv.config();
 const app = express();
@@ -134,6 +134,10 @@ const MARKET_NEWS_FEED = [
 
 app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
 
 let signalHistory = [];
 let sentCandlesCache = {};
