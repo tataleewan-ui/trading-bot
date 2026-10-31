@@ -1276,7 +1276,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         </div>
 
         <!-- SubTab 2: Pine Script v5 -->
-        <div id="subtab-panel-pine" class="subtab-panel hidden space-y-3">
+        <div id="subtab-panel-pine" style="display: none;" class="subtab-panel space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <h4 class="font-bold text-sm text-white">สคริปต์ Pine Script v5 (TradingView)</h4>
@@ -1353,7 +1353,7 @@ if validSell
         </div>
 
         <!-- SubTab 3: Setup -->
-        <div id="subtab-panel-setup" class="subtab-panel hidden space-y-4 text-xs">
+        <div id="subtab-panel-setup" style="display: none;" class="subtab-panel space-y-4 text-xs">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
               <h5 class="font-bold text-white text-sm flex items-center gap-2"><span>✈️</span> วิธีเชื่อมต่อ Telegram Bot</h5>
@@ -1376,7 +1376,7 @@ if validSell
         </div>
 
         <!-- SubTab 4: Simulator -->
-        <div id="subtab-panel-simulator" class="subtab-panel hidden">
+        <div id="subtab-panel-simulator" style="display: none;" class="subtab-panel">
           <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
             <div class="mb-4">
               <h4 class="font-bold text-sm text-white">ทดสอบสร้างสัญญาณเสมือนจริง (Signal Simulator)</h4>
@@ -1406,7 +1406,7 @@ if validSell
     </div>
 
     <!-- TAB 2: MY PERSONAL PORTFOLIO DOCTOR & FORECAST -->
-    <div id="view-portfolio" class="hidden flex flex-col gap-5">
+    <div id="view-portfolio" style="display: none;" class="flex flex-col gap-5">
       <!-- Portfolio Health & Stats -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
@@ -1489,14 +1489,14 @@ if validSell
     </div>
 
     <!-- TAB 3: BROAD MARKET SCREENER -->
-    <div id="view-broad" class="hidden flex flex-col gap-5">
+    <div id="view-broad" style="display: none;" class="flex flex-col gap-5">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
             <h3 class="font-black text-base text-white">🌟 สแกนเนอร์ก้นหลุมรอบเดือน 35 หุ้นใหญ่สหรัฐฯ (Monthly Dip Deals)</h3>
             <p class="text-xs text-slate-400">คัดกรองเฉพาะหุ้นพื้นฐานแกร่งที่ราคาลงมาแตะแนวรับต่ำสุดในรอบ 1 เดือน พร้อมสัญญาณกลับตัว</p>
           </div>
-          <button id="send-broad-tg-btn" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+          <button id="send-broad-tg-btn" onclick="sendBroadTelegram()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
             🌟 ส่ง 4 หุ้นเด่นเข้า Telegram
           </button>
         </div>
@@ -1516,7 +1516,7 @@ if validSell
         </div>
 
         <!-- Single Stock Search Result Card (Hidden by default) -->
-        <div id="search-result-card" class="hidden bg-slate-950 border border-slate-700 rounded-xl p-4 space-y-2">
+        <div id="search-result-card" style="display: none;" class="bg-slate-950 border border-slate-700 rounded-xl p-4 space-y-2">
           <div class="flex items-center justify-between">
             <span id="res-sym" class="font-bold text-sm text-white">ผลการวิเคราะห์</span>
             <span id="res-verdict" class="px-3 py-1 rounded-full text-xs font-black">--</span>
@@ -1555,7 +1555,7 @@ if validSell
     </div>
 
     <!-- TAB 4: BREAKING NEWS & IMPACT RADAR -->
-    <div id="view-news" class="hidden flex flex-col gap-5">
+    <div id="view-news" style="display: none;" class="flex flex-col gap-5">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
@@ -1580,7 +1580,7 @@ if validSell
   </main>
 
   <!-- Telegram Message Preview Modal -->
-  <div id="telegram-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+  <div id="telegram-modal" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl relative">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
         <div class="flex items-center gap-2">
@@ -1887,12 +1887,13 @@ if validSell
       tabs.forEach(t => {
         const btn = document.getElementById("tab-btn-" + t);
         const view = document.getElementById("view-" + t);
+        if (!btn || !view) return;
         if (t === tab) {
           btn.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-amber-500 text-slate-950 shadow-md";
-          view.classList.remove("hidden");
+          view.style.display = "flex";
         } else {
           btn.className = "px-4 py-2 rounded-xl text-xs font-black transition bg-slate-800 text-slate-300 hover:bg-slate-700";
-          view.classList.add("hidden");
+          view.style.display = "none";
         }
       });
       if (tab === "portfolio") loadMyPortfolio();
@@ -1906,12 +1907,13 @@ if validSell
       subs.forEach(s => {
         const btn = document.getElementById("subtab-btn-" + s);
         const panel = document.getElementById("subtab-panel-" + s);
+        if (!btn || !panel) return;
         if (s === sub) {
           btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-800 text-emerald-400 border border-emerald-500/30";
-          panel.classList.remove("hidden");
+          panel.style.display = "block";
         } else {
           btn.className = "subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white hover:bg-slate-800";
-          panel.classList.add("hidden");
+          panel.style.display = "none";
         }
       });
     }
@@ -1966,11 +1968,13 @@ if validSell
         "──────────────────\n" +
         "💡 กลยุทธ์: แท่ง 15m ปิดเหนือเส้น EMA ดึงราคาสดเรียลไทม์";
       document.getElementById("tg-preview-text").textContent = txt;
-      document.getElementById("telegram-modal").classList.remove("hidden");
+      const modal = document.getElementById("telegram-modal");
+      if (modal) modal.style.display = "flex";
     }
 
     function closeTelegramPreview() {
-      document.getElementById("telegram-modal").classList.add("hidden");
+      const modal = document.getElementById("telegram-modal");
+      if (modal) modal.style.display = "none";
     }
 
     async function simTrigger(asset, action) {
@@ -2121,16 +2125,40 @@ if validSell
       } catch(e) { showToast("เกิดข้อผิดพลาด", "danger"); }
     }
 
-    document.getElementById("send-broad-tg-btn").onclick = async function() {
+    async function sendBroadTelegram() {
       const btn = document.getElementById("send-broad-tg-btn");
-      btn.textContent = "⏳ กำลังส่ง 4 หุ้นเด่น...";
+      if (btn) btn.textContent = "⏳ กำลังส่ง 4 หุ้นเด่น...";
       try {
         const r = await fetch("/api/send-broad-telegram", { method: "POST" });
         const d = await r.json();
-        btn.textContent = d.ok ? "✅ ส่งเข้า Telegram เรียบร้อย!" : "⚠️ ส่งไม่สำเร็จ";
-      } catch(e) { btn.textContent = "⚠️ ไม่สำเร็จ"; }
-      setTimeout(() => btn.textContent = "🌟 ส่ง 4 หุ้นเด่นเข้า Telegram", 3000);
-    };
+        showToast(d.ok ? "ส่ง 4 หุ้นเด่นเข้า Telegram เรียบร้อย!" : "ส่งไม่สำเร็จ", d.ok ? "success" : "danger");
+        if (btn) btn.textContent = d.ok ? "✅ ส่งเข้า Telegram เรียบร้อย!" : "⚠️ ส่งไม่สำเร็จ";
+      } catch(e) {
+        showToast("เกิดข้อผิดพลาดในการส่ง", "danger");
+        if (btn) btn.textContent = "⚠️ ไม่สำเร็จ";
+      }
+      setTimeout(() => { if (btn) btn.textContent = "🌟 ส่ง 4 หุ้นเด่นเข้า Telegram"; }, 3000);
+    }
+
+    // Bind all handlers to window explicitly
+    window.switchMasterTab = switchMasterTab;
+    window.switchSubTab = switchSubTab;
+    window.setAsset = setAsset;
+    window.refreshChart = refreshChart;
+    window.copyText = copyText;
+    window.copyPineScript = copyPineScript;
+    window.copyWebhookUrl = copyWebhookUrl;
+    window.openTelegramPreview = openTelegramPreview;
+    window.closeTelegramPreview = closeTelegramPreview;
+    window.toggleSound = toggleSound;
+    window.quickSimulate = quickSimulate;
+    window.simTrigger = simTrigger;
+    window.calcDCA = calcDCA;
+    window.filterMatch = filterMatch;
+    window.searchSingleStock = searchSingleStock;
+    window.sendNewsTelegram = sendNewsTelegram;
+    window.sendForecastTelegram = sendForecastTelegram;
+    window.sendBroadTelegram = sendBroadTelegram;
 
     // 4. Clocks & Timers
     function updateWorldClock() {
