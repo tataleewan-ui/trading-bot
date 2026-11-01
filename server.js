@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { WebSocketServer, WebSocket } from 'ws';
 
-// Error Protection
+// Error Protection to prevent crash on Render
 process.on('uncaughtException', (err) => console.error('⚠️ [UncaughtException]:', err.message));
 process.on('unhandledRejection', (reason) => console.error('⚠️ [UnhandledRejection]:', reason));
 
@@ -15,7 +15,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 const APP_URL = process.env.RENDER_EXTERNAL_URL || 'https://trading-bot-lnf1.onrender.com';
 
 // Telegram Configuration & Auto-Polling
@@ -312,12 +312,12 @@ const M15_ASSETS = {
 
 // Signal History
 let signalHistory = [
-  { id: 's1', sessionDate: 'ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)', time: '15:45 น.', asset: 'XAU/USD (ทองคำ)', action: 'BUY', entry: 2782.50, sl: 2776.00, tp1: 2792.00, tp2: 2798.50, rr: '1:2.4', status: 'TP2 HIT', statusClass: 'text-emerald-400 bg-emerald-500/20' },
-  { id: 's2', sessionDate: 'ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)', time: '14:30 น.', asset: 'NASDAQ (QQQ)', action: 'BUY', entry: 494.20, sl: 492.10, tp1: 497.35, tp2: 499.50, rr: '1:2.5', status: 'TP1 HIT', statusClass: 'text-teal-400 bg-teal-500/20' },
-  { id: 's3', sessionDate: 'ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)', time: '12:15 น.', asset: 'NVDA (Nvidia)', action: 'SELL', entry: 142.80, sl: 144.10, tp1: 140.85, tp2: 139.50, rr: '1:2.5', status: 'SL HIT', statusClass: 'text-rose-400 bg-rose-500/20' }
+  { id: 's1', sessionDate: 'ศุกร์ 30 ต.ค. (รอบล่าสุด)', time: '15:45 น.', asset: 'XAU/USD (ทองคำ)', action: 'BUY', entry: 2782.50, sl: 2776.00, tp1: 2792.00, tp2: 2798.50, rr: '1:2.4', status: 'TP2 HIT', statusClass: 'text-emerald-400 bg-emerald-500/20' },
+  { id: 's2', sessionDate: 'ศุกร์ 30 ต.ค. (รอบล่าสุด)', time: '14:30 น.', asset: 'NASDAQ (QQQ)', action: 'BUY', entry: 494.20, sl: 492.10, tp1: 497.35, tp2: 499.50, rr: '1:2.5', status: 'TP1 HIT', statusClass: 'text-teal-400 bg-teal-500/20' },
+  { id: 's3', sessionDate: 'ศุกร์ 30 ต.ค. (รอบล่าสุด)', time: '12:15 น.', asset: 'NVDA (Nvidia)', action: 'SELL', entry: 142.80, sl: 144.10, tp1: 140.85, tp2: 139.50, rr: '1:2.5', status: 'SL HIT', statusClass: 'text-rose-400 bg-rose-500/20' }
 ];
 
-// Broad Market Screener
+// Broad Market Screener (Top 5 Dips)
 const broadMarketCache = [
   { rank: 1, symbol: 'AMZN', name: 'Amazon.com Inc', price: 186.40, dipPercent: -12.4, rsi: 34.2, score: 94, badgeText: '🌟 ก้นหลุมน่าช้อนมาก (จุดกลับตัว)', buyZone: '183-187', tp2: 215.00, upside: 15.3 },
   { rank: 2, symbol: 'GOOGL', name: 'Alphabet Inc (Google)', price: 168.20, dipPercent: -10.8, rsi: 36.5, score: 91, badgeText: '🟢 แนวรับสำคัญพร้อมดีด', buyZone: '165-169', tp2: 192.00, upside: 14.1 },
@@ -344,7 +344,7 @@ function escapeTg(str) {
 async function sendTelegramMessage(text, isHtml = true, targetChatId = null) {
   const destChatId = targetChatId || CHAT_ID;
   if (!BOT_TOKEN || !destChatId) {
-    return { ok: false, error: 'ยังไม่มี Chat ID กรุณาเปิด Telegram แล้วส่งข้อความ /start หรือทักบอท 1 ครั้ง' };
+    return { ok: false, error: 'ยังไม่มี Chat ID กรุณาเปิด Telegram แล้วพิมพ์ /start หรือทักบอท 1 ครั้ง' };
   }
 
   try {
@@ -379,7 +379,7 @@ async function sendTelegramMessage(text, isHtml = true, targetChatId = null) {
   }
 }
 
-// Auto-Capturing Polling
+// Auto-Capturing Polling: Automatically links Telegram Chat ID when user chats with bot!
 async function pollTelegramUpdates() {
   if (!BOT_TOKEN || isPollingTelegram) return;
   isPollingTelegram = true;
@@ -448,7 +448,7 @@ function broadcast(msg) {
   });
 }
 
-// API Routes
+// REST Endpoints
 app.get('/api/signals', (req, res) => res.json(signalHistory));
 app.get('/api/my-portfolio', (req, res) => res.json(userHoldings));
 app.get('/api/broad-market', (req, res) => res.json(broadMarketCache));
@@ -474,6 +474,47 @@ app.post('/api/set-telegram-chat-id', (req, res) => {
   }
 });
 
+// TradingView Webhook Receiver
+app.post('/api/webhook/tradingview', async (req, res) => {
+  const b = req.body || {};
+  const asset = b.ticker || b.symbol || 'XAU/USD';
+  const action = (b.action || 'BUY').toUpperCase();
+  const entry = parseFloat(b.price || b.entry || 2785.40);
+  const sl = parseFloat(b.sl || (action === 'BUY' ? entry * 0.996 : entry * 1.004));
+  const tp1 = parseFloat(b.tp1 || (action === 'BUY' ? entry * 1.004 : entry * 0.996));
+  const tp2 = parseFloat(b.tp2 || (action === 'BUY' ? entry * 1.008 : entry * 0.992));
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' }) + ' น.';
+  const dateStr = now.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', month: 'short', day: 'numeric' });
+
+  const sig = {
+    id: 'sig_' + Date.now(),
+    sessionDate: `${dateStr} (Live Webhook)`,
+    time: timeStr,
+    asset,
+    action,
+    entry: Number(entry.toFixed(2)),
+    sl: Number(sl.toFixed(2)),
+    tp1: Number(tp1.toFixed(2)),
+    tp2: Number(tp2.toFixed(2)),
+    rr: '1:2.0',
+    status: 'ACTIVE SIGNAL',
+    statusClass: 'text-amber-400 bg-amber-500/20'
+  };
+
+  signalHistory.unshift(sig);
+  if (signalHistory.length > 30) signalHistory.pop();
+
+  broadcast({ type: 'new_signal', signal: sig });
+
+  const msg = `⚡ <b>[M15 SIGNAL ALERT]</b>\nสินทรัพย์: <b>${escapeTg(sig.asset)}</b>\nคำสั่ง: <b>${sig.action}</b>\n🎯 จุดเข้า: <code>${sig.entry}</code>\n🛑 Stop Loss: <code>${sig.sl}</code>\n🏆 Take Profit: <code>${sig.tp1}</code> / <code>${sig.tp2}</code>\n⏰ เวลา: ${sig.time}`;
+  await sendTelegramMessage(msg, true);
+
+  res.json({ ok: true, signal: sig });
+});
+
+// Simulation Trigger
 app.post('/api/simulate-signal', async (req, res) => {
   const assetKey = req.body?.asset || 'XAU/USD';
   const action = (req.body?.action || 'BUY').toUpperCase();
@@ -545,13 +586,14 @@ app.post('/api/send-broad-telegram', async (req, res) => {
   res.json(result);
 });
 
-// HTML Page Definition
+// Clean Single Page Application HTML
 const HTML_PAGE = `<!DOCTYPE html>
 <html lang="th" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>M15 Pro Trading Terminal & Dime! Portfolio Assistant</title>
+  
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap");
@@ -797,7 +839,7 @@ const HTML_PAGE = `<!DOCTYPE html>
             </thead>
             <tbody id="signals-table-body" class="divide-y divide-slate-800/60">
               <tr>
-                <td class="py-3 px-3 text-slate-400">ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)</td>
+                <td class="py-3 px-3 text-slate-400">ศุกร์ 30 ต.ค. (รอบล่าสุด)</td>
                 <td class="py-3 px-3 text-slate-300">15:45 น.</td>
                 <td class="py-3 px-3 font-bold text-white">XAU/USD (ทองคำ)</td>
                 <td class="py-3 px-3"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">BUY</span></td>
@@ -807,7 +849,7 @@ const HTML_PAGE = `<!DOCTYPE html>
                 <td class="py-3 px-3"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">TP2 HIT (+2.4R)</span></td>
               </tr>
               <tr>
-                <td class="py-3 px-3 text-slate-400">ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)</td>
+                <td class="py-3 px-3 text-slate-400">ศุกร์ 30 ต.ค. (รอบล่าสุด)</td>
                 <td class="py-3 px-3 text-slate-300">14:30 น.</td>
                 <td class="py-3 px-3 font-bold text-white">NASDAQ (QQQ)</td>
                 <td class="py-3 px-3"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">BUY</span></td>
@@ -817,7 +859,7 @@ const HTML_PAGE = `<!DOCTYPE html>
                 <td class="py-3 px-3"><span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-400 font-bold">TP1 HIT (+1.5R)</span></td>
               </tr>
               <tr>
-                <td class="py-3 px-3 text-slate-400">ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)</td>
+                <td class="py-3 px-3 text-slate-400">ศุกร์ 30 ต.ค. (รอบล่าสุด)</td>
                 <td class="py-3 px-3 text-slate-300">12:15 น.</td>
                 <td class="py-3 px-3 font-bold text-white">NVDA (Nvidia)</td>
                 <td class="py-3 px-3"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">SELL</span></td>
@@ -1270,7 +1312,7 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
         <span class="font-bold text-emerald-400 block text-sm">📲 วิธีเชื่อมต่อง่ายที่สุด (ไม่ต้องจำตัวเลข):</span>
         <ol class="list-decimal list-inside space-y-1.5 text-slate-300 leading-relaxed">
-          <li>เปิดแอป Telegram แล้วค้นหาบอทแจ้งเตือนของคุณ</li>
+          <li>เปิดแอป Telegram แล้วค้นหาบอทของคุณ</li>
           <li>กดปุ่ม <b>/start</b> หรือพิมพ์คำว่า <b>"สวัสดี"</b> ส่งไปที่บอท 1 ครั้ง</li>
           <li><b>ระบบจะจับคู่ Chat ID ของคุณโดยอัตโนมัติทันที!</b> ไม่ต้องพิมพ์ตัวเลขเอง</li>
         </ol>
@@ -1688,4 +1730,4 @@ app.get('/m15', (req, res) => res.send(HTML_PAGE));
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Complete Master Terminal running on 0.0.0.0:${PORT}`);
-});
+});;
