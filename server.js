@@ -6,13 +6,9 @@ import fs from 'fs';
 import path from 'path';
 import { WebSocketServer, WebSocket } from 'ws';
 
-// 1. Error Protection to Prevent Server Crashes
-process.on('uncaughtException', (err) => {
-  console.error('⚠️ [SafeGuard] Uncaught Exception:', err.message);
-});
-process.on('unhandledRejection', (reason) => {
-  console.error('⚠️ [SafeGuard] Unhandled Rejection:', reason);
-});
+// Error Protection
+process.on('uncaughtException', (err) => console.error('⚠️ [UncaughtException]:', err.message));
+process.on('unhandledRejection', (reason) => console.error('⚠️ [UnhandledRejection]:', reason));
 
 dotenv.config();
 const app = express();
@@ -22,22 +18,18 @@ const wss = new WebSocketServer({ server });
 const PORT = process.env.PORT || 3000;
 const APP_URL = process.env.RENDER_EXTERNAL_URL || 'https://trading-bot-lnf1.onrender.com';
 
-// 2. Telegram Bot Configuration & State
+// Telegram Configuration & Auto-Polling
 const CONFIG_FILE = path.join(process.cwd(), 'telegram_config.json');
-
 let BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '9089609371:AAFyPRrun1KIafdD3J1ii2WmymjxJrTFR-E';
 let CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 let isPollingTelegram = false;
 let lastTelegramUpdateId = 0;
 
-// Read saved Chat ID if exists
 try {
   if (fs.existsSync(CONFIG_FILE)) {
-    const raw = fs.readFileSync(CONFIG_FILE, 'utf-8');
-    const saved = JSON.parse(raw);
+    const saved = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
     if (saved.chatId) CHAT_ID = saved.chatId;
     if (saved.botToken) BOT_TOKEN = saved.botToken;
-    console.log(' Loaded persistent Chat ID:', CHAT_ID ? `${CHAT_ID.slice(0, 4)}...` : 'None');
   }
 } catch (e) {}
 
@@ -47,13 +39,13 @@ function saveTelegramConfig(token, cid) {
   } catch (e) {}
 }
 
-// 3. Real Dime Portfolio Data (11 Assets)
+// 11 Verified Real Dime Assets
 let userHoldings = [
   {
     "id": "voo",
     "symbol": "VOO",
     "name": "Vanguard S&P 500 ETF",
-    "category": "หุ้นหลัก (เสาหลักพอร์ต)",
+    "category": "หุ้นหลัก (เสาหลัก)",
     "currency": "USD",
     "shares": 0.0470292,
     "avgCost": 655.55,
@@ -249,7 +241,7 @@ let userHoldings = [
   }
 ];
 
-// 4. M15 Asset Matrix
+// 5 M15 Trading Assets
 const M15_ASSETS = {
   "XAU/USD": {
     "label": "XAU/USD (ทองคำ)",
@@ -318,14 +310,14 @@ const M15_ASSETS = {
   }
 };
 
-// Trade History
+// Signal History
 let signalHistory = [
   { id: 's1', sessionDate: 'ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)', time: '15:45 น.', asset: 'XAU/USD (ทองคำ)', action: 'BUY', entry: 2782.50, sl: 2776.00, tp1: 2792.00, tp2: 2798.50, rr: '1:2.4', status: 'TP2 HIT', statusClass: 'text-emerald-400 bg-emerald-500/20' },
   { id: 's2', sessionDate: 'ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)', time: '14:30 น.', asset: 'NASDAQ (QQQ)', action: 'BUY', entry: 494.20, sl: 492.10, tp1: 497.35, tp2: 499.50, rr: '1:2.5', status: 'TP1 HIT', statusClass: 'text-teal-400 bg-teal-500/20' },
   { id: 's3', sessionDate: 'ศุกร์ 30 ต.ค. (รอบก่อนปิดตลาด)', time: '12:15 น.', asset: 'NVDA (Nvidia)', action: 'SELL', entry: 142.80, sl: 144.10, tp1: 140.85, tp2: 139.50, rr: '1:2.5', status: 'SL HIT', statusClass: 'text-rose-400 bg-rose-500/20' }
 ];
 
-// Broad Market Screener Cache (Top Dip Deals)
+// Broad Market Screener
 const broadMarketCache = [
   { rank: 1, symbol: 'AMZN', name: 'Amazon.com Inc', price: 186.40, dipPercent: -12.4, rsi: 34.2, score: 94, badgeText: '🌟 ก้นหลุมน่าช้อนมาก (จุดกลับตัว)', buyZone: '183-187', tp2: 215.00, upside: 15.3 },
   { rank: 2, symbol: 'GOOGL', name: 'Alphabet Inc (Google)', price: 168.20, dipPercent: -10.8, rsi: 36.5, score: 91, badgeText: '🟢 แนวรับสำคัญพร้อมดีด', buyZone: '165-169', tp2: 192.00, upside: 14.1 },
@@ -334,7 +326,7 @@ const broadMarketCache = [
   { rank: 5, symbol: 'AMD', name: 'Advanced Micro Devices', price: 156.40, dipPercent: -14.6, rsi: 32.8, score: 92, badgeText: '🌟 ก้นหลุม Oversold รอบเดือน', buyZone: '152-157', tp2: 184.00, upside: 17.6 }
 ];
 
-// Market News Cache
+// Breaking News Feed
 const newsCache = [
   { id: 'n1', time: 'ข่าวสำคัญรอบสัปดาห์', headline: 'ประธานเฟด (Fed) ส่งสัญญาณแนวโน้มลดอัตราดอกเบี้ยนโยบายต่อเนื่องเพื่อประคองการจ้างงาน', category: 'FED / ดอกเบี้ย', impactBadge: '🟢 หนุนตลาดขึ้น (Bullish)', impactReason: 'ดอกเบี้ยขาลงลดต้นทุนการกู้ยืม เพิ่มสภาพคล่องในระบบ และกระตุ้นสินทรัพย์เสี่ยง', affectedAssets: 'SPY, QQQ, VOO, XAU/USD (ขึ้น)' },
   { id: 'n2', time: 'ข่าวสำคัญรอบสัปดาห์', headline: 'รายงานดัชนีเงินเฟ้อสหรัฐฯ (CPI) ชะลอตัวลงตามคาดการณ์ เปิดทางเศรษฐกิจ Soft Landing', category: 'INFLATION / เงินเฟ้อ', impactBadge: '🟢 หนุนตลาดขึ้น (Bullish)', impactReason: 'เงินเฟ้อไม่ดีดกลับ ลดแรงกดดันต่อนโยบายการเงิน หนุนความเชื่อมั่นนักลงทุนสถาบัน', affectedAssets: 'NVDA, AMD, QQQ, VOO (ขึ้น)' },
@@ -342,20 +334,17 @@ const newsCache = [
   { id: 'n4', time: 'ข่าวสำคัญรอบสัปดาห์', headline: 'อุปสงค์โครงสร้างพื้นฐาน AI และชิปประมวลผล Big Tech ยังขยายตัวสูงกว่ากำลังผลิต', category: 'AI & SEMICONDUCTOR', impactBadge: '🟢 หนุนหุ้นเทคและเซมิ (Bullish Tech)', impactReason: 'ความต้องการ Capex ด้าน AI Server ยังแข็งแกร่งมาก เพิ่มคาดการณ์กำไรในอนาคต', affectedAssets: 'NVDA, AMD, TTB (ถือเติบโต)' }
 ];
 
-// Express Middleware
 app.use(cors());
 app.use(express.json());
 
-// Escape HTML for Telegram
 function escapeTg(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// Telegram Sender with Auto-Fallback to Plain Text
 async function sendTelegramMessage(text, isHtml = true, targetChatId = null) {
   const destChatId = targetChatId || CHAT_ID;
   if (!BOT_TOKEN || !destChatId) {
-    return { ok: false, error: 'ยังไม่มี Chat ID กรุณาเปิดแอป Telegram แล้วพิมพ์ /start หรือทักบอท 1 ครั้ง' };
+    return { ok: false, error: 'ยังไม่มี Chat ID กรุณาเปิด Telegram แล้วส่งข้อความ /start หรือทักบอท 1 ครั้ง' };
   }
 
   try {
@@ -367,7 +356,6 @@ async function sendTelegramMessage(text, isHtml = true, targetChatId = null) {
     });
     let d = await res.json();
 
-    // If HTML parsing failed, strip HTML and send as plain text!
     if (!d.ok && isHtml) {
       const plain = text.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&');
       res = await fetch(url, {
@@ -387,11 +375,11 @@ async function sendTelegramMessage(text, isHtml = true, targetChatId = null) {
       return { ok: false, error: err };
     }
   } catch (e) {
-    return { ok: false, error: 'เชื่อมต่อเครือข่าย Telegram ไม่ได้: ' + e.message };
+    return { ok: false, error: 'เชื่อมต่อ Telegram ไม่สำเร็จ: ' + e.message };
   }
 }
 
-// Auto-Capturing Polling: Captures Chat ID Whenever User Chats With Bot!
+// Auto-Capturing Polling
 async function pollTelegramUpdates() {
   if (!BOT_TOKEN || isPollingTelegram) return;
   isPollingTelegram = true;
@@ -407,7 +395,6 @@ async function pollTelegramUpdates() {
         const chatId = String(msg.chat.id);
         CHAT_ID = chatId;
         saveTelegramConfig(BOT_TOKEN, CHAT_ID);
-        console.log('✅ Auto-captured Telegram Chat ID:', CHAT_ID);
 
         const txt = msg.text.trim().toLowerCase();
         if (txt === '/start' || txt.includes('สวัสดี') || txt.includes('hello')) {
@@ -452,7 +439,6 @@ async function pollTelegramUpdates() {
 
 setInterval(pollTelegramUpdates, 2500);
 
-// Broadcast via WebSocket
 function broadcast(msg) {
   const data = JSON.stringify(msg);
   wss.clients.forEach(c => {
@@ -462,7 +448,7 @@ function broadcast(msg) {
   });
 }
 
-// 5. API Endpoints
+// API Routes
 app.get('/api/signals', (req, res) => res.json(signalHistory));
 app.get('/api/my-portfolio', (req, res) => res.json(userHoldings));
 app.get('/api/broad-market', (req, res) => res.json(broadMarketCache));
@@ -488,7 +474,6 @@ app.post('/api/set-telegram-chat-id', (req, res) => {
   }
 });
 
-// Simulate Signal
 app.post('/api/simulate-signal', async (req, res) => {
   const assetKey = req.body?.asset || 'XAU/USD';
   const action = (req.body?.action || 'BUY').toUpperCase();
@@ -530,7 +515,6 @@ app.post('/api/simulate-signal', async (req, res) => {
   res.json({ ok: true, signal: simSig, telegramSent: tgResult.ok, telegramError: tgResult.error || null });
 });
 
-// Send News to Telegram
 app.post('/api/send-news-telegram', async (req, res) => {
   let msg = '📰 <b>สรุปรายงานข่าวด่วน & ปัจจัยกระทบตลาด</b>\n──────────────────\n';
   newsCache.forEach((n, i) => {
@@ -540,7 +524,6 @@ app.post('/api/send-news-telegram', async (req, res) => {
   res.json(result);
 });
 
-// Send Forecast to Telegram
 app.post('/api/send-forecast-telegram', async (req, res) => {
   let msg = '💼 <b>สรุปผลทำนายกราฟและแผนกลยุทธ์พอร์ตของคุณ</b>\n──────────────────\n';
   userHoldings.slice(0, 5).forEach((h) => {
@@ -551,7 +534,6 @@ app.post('/api/send-forecast-telegram', async (req, res) => {
   res.json(result);
 });
 
-// Send Broad Market to Telegram
 app.post('/api/send-broad-telegram', async (req, res) => {
   const top4 = broadMarketCache.slice(0, 4);
   let msg = '🌟 <b>สรุปอันดับหุ้นน่าช้อนซื้อที่สุดในตลาด (สแกนก้นหลุม)</b>\n──────────────────\n';
@@ -563,32 +545,14 @@ app.post('/api/send-broad-telegram', async (req, res) => {
   res.json(result);
 });
 
-// 6. Pre-rendered HTML Page
+// HTML Page Definition
 const HTML_PAGE = `<!DOCTYPE html>
 <html lang="th" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>M15 Pro Trading Terminal & Dime! Portfolio Assistant</title>
-  
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            tradeDark: "#070a12",
-            tradeCard: "#0f172a",
-            tradeBorder: "#1e293b",
-            tradeGreen: "#10b981",
-            tradeRed: "#ef4444",
-            tradeGold: "#f59e0b"
-          }
-        }
-      }
-    };
-  </script>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap");
     body { font-family: "Inter", sans-serif; background-color: #070a12; color: #f1f5f9; }
@@ -638,7 +602,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         <span class="text-2xl">⚡</span>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-black text-base text-white tracking-tight">M15 Realtime Pro Trading & Dime! Portfolio</h1>
+            <h1 class="font-black text-base text-white tracking-tight">M15 Pro Trading Terminal & Dime! Portfolio</h1>
             <span id="header-market-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               🟢 ตลาดพร้อมใช้งาน
             </span>
@@ -1005,7 +969,7 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
             </thead>
             <tbody id="pf-tbody" class="divide-y divide-slate-800/60">
               <tr class="hover:bg-slate-800/50 transition">
-                <td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">หุ้นหลัก (เสาหลักพอร์ต)</span></td>
+                <td class="py-3 px-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">หุ้นหลัก (เสาหลัก)</span></td>
                 <td class="py-3 px-3"><b class="text-white text-sm">VOO</b><span class="text-slate-400 text-xs block">Vanguard S&P 500 ETF</span></td>
                 <td class="py-3 px-3 font-bold text-white">0.0470292</td>
                 <td class="py-3 px-3 text-slate-300">$655.55</td>
@@ -1306,7 +1270,7 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
         <span class="font-bold text-emerald-400 block text-sm">📲 วิธีเชื่อมต่อง่ายที่สุด (ไม่ต้องจำตัวเลข):</span>
         <ol class="list-decimal list-inside space-y-1.5 text-slate-300 leading-relaxed">
-          <li>เปิดแอป Telegram แล้วค้นหาบอทของคุณ: <b>@M15_Trading_Bot</b> (หรือบอทที่คุณสร้างไว้)</li>
+          <li>เปิดแอป Telegram แล้วค้นหาบอทแจ้งเตือนของคุณ</li>
           <li>กดปุ่ม <b>/start</b> หรือพิมพ์คำว่า <b>"สวัสดี"</b> ส่งไปที่บอท 1 ครั้ง</li>
           <li><b>ระบบจะจับคู่ Chat ID ของคุณโดยอัตโนมัติทันที!</b> ไม่ต้องพิมพ์ตัวเลขเอง</li>
         </ol>
@@ -1345,7 +1309,7 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
     let audioCtx = null;
     let ws = null;
 
-    // Pleasant Sound Synthesizer via Web Audio API
+    // Web Audio Synthesizer
     function playChime(isBuy) {
       if (!soundEnabled) return;
       try {
@@ -1375,7 +1339,7 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       } catch(e) {}
     }
 
-    // Toast Notification System
+    // Toast System
     function showToast(message, type = "info") {
       const container = document.getElementById("toast-container");
       if (!container) return;
@@ -1389,7 +1353,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       setTimeout(() => toast.remove(), 4000);
     }
 
-    // Copy to Clipboard Fallback
     function safeCopy(text, successMsg) {
       if (!text || text === "--") return;
       if (navigator.clipboard && window.isSecureContext) {
@@ -1437,12 +1400,11 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       safeCopy(url, "คัดลอก Webhook URL แล้ว!");
     }
 
-    // 100% RELIABLE CHART SWITCHER: Re-creates the iframe DOM node so the requested symbol LOADS INSTANTLY!
+    // 100% RELIABLE CHART SWITCHER: Recreates iframe so it always loads the clicked symbol!
     function setAsset(tvSym, label) {
       currentSelectedSymbol = label;
       const asset = ASSETS_DATA[label] || ASSETS_DATA['XAU/USD'];
 
-      // 1. Highlight clicked card
       document.querySelectorAll('.asset-card').forEach(c => {
         c.className = "asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-3 transition";
       });
@@ -1451,7 +1413,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
         activeCard.className = "asset-card active copy-card bg-slate-900 border-2 border-amber-500 rounded-xl p-3 transition";
       }
 
-      // 2. Recreate the iframe inside tv-frame-container (Forces TradingView to mount the new chart!)
       const container = document.getElementById("tv-frame-container");
       if (container) {
         container.innerHTML = '<iframe id="tv-frame" src="https://s.tradingview.com/widgetembed/?symbol=' + encodeURIComponent(tvSym) + '&interval=15&theme=dark&timezone=Asia%2FBangkok" class="w-full h-full border-0"></iframe>';
@@ -1459,7 +1420,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       const titleEl = document.getElementById("chart-asset-title");
       if (titleEl) titleEl.textContent = "ชาร์ตสด " + asset.label + " (TradingView M15)";
 
-      // 3. Update the Active Signal Card values
       const tickerTitle = document.getElementById("active-signal-title");
       if (tickerTitle) tickerTitle.textContent = asset.label + " • 15m";
       const badge = document.getElementById("active-action-badge");
@@ -1478,7 +1438,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       showToast("สลับดูกราฟและแผนของ " + asset.label + " สำเร็จ!", "info");
     }
 
-    // Toggle Sound
     function toggleSound() {
       soundEnabled = !soundEnabled;
       document.getElementById("sound-icon").textContent = soundEnabled ? "🔊" : "🔇";
@@ -1487,7 +1446,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       if (soundEnabled) playChime(true);
     }
 
-    // Telegram Modal Management
     async function checkTelegramStatus() {
       try {
         const r = await fetch("/api/telegram-status");
@@ -1545,7 +1503,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       } catch(e) {}
     }
 
-    // Quick Simulation Trigger
     async function simTrigger(assetKey, action) {
       showToast("กำลังยิงสัญญาณทดสอบ " + action + " " + assetKey, "info");
       playChime(action === 'BUY');
@@ -1587,7 +1544,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       tbody.insertBefore(tr, tbody.firstChild);
     }
 
-    // Telegram Dispatch Helpers with Live Feedback
     async function sendNewsTelegram() {
       showToast("กำลังส่งสรุปข่าวเข้า Telegram...", "info");
       try {
@@ -1648,7 +1604,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       showToast("คำนวณสัดส่วน DCA ฿" + amt.toLocaleString() + " แล้ว!", "success");
     }
 
-    // World Clock & Candle Timer
     function updateWorldClock() {
       const now = new Date();
       const bkkStr = now.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour12: false });
@@ -1671,7 +1626,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
     setInterval(updateWorldClock, 1000);
     updateWorldClock();
 
-    // Auto-reconnecting Real-time WebSocket Client
     function initWebSocket() {
       const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = proto + '//' + window.location.host;
@@ -1695,7 +1649,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
     }
     initWebSocket();
 
-    // Attach to Window Scope
     window.switchMasterTab = switchMasterTab;
     window.switchSubTab = switchSubTab;
     window.setAsset = setAsset;
@@ -1713,12 +1666,10 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
     window.sendForecastTelegram = sendForecastTelegram;
     window.sendBroadTelegram = sendBroadTelegram;
 
-    // Check status on load
     window.addEventListener('DOMContentLoaded', () => {
       checkTelegramStatus();
     });
 
-    // Route Hash Check
     const curHash = (window.location.hash || "").toLowerCase();
     if (curHash.includes("portfolio")) switchMasterTab("portfolio");
     else if (curHash.includes("broad") || curHash.includes("screener")) switchMasterTab("broad");
@@ -1727,7 +1678,6 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
 </body>
 </html>`;
 
-// 7. Navigation Routes
 app.get('/', (req, res) => res.send(HTML_PAGE));
 app.get('/portfolio', (req, res) => res.send(HTML_PAGE));
 app.get('/port', (req, res) => res.send(HTML_PAGE));
@@ -1736,7 +1686,6 @@ app.get('/broad', (req, res) => res.send(HTML_PAGE));
 app.get('/news', (req, res) => res.send(HTML_PAGE));
 app.get('/m15', (req, res) => res.send(HTML_PAGE));
 
-// Start Server
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Complete Master Terminal running on 0.0.0.0:${PORT}`);
 });
