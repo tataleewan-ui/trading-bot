@@ -2,6 +2,8 @@ import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 import { WebSocketServer, WebSocket } from 'ws';
 
 // 1. Error Protection to Prevent Server Crashes
@@ -19,10 +21,35 @@ const wss = new WebSocketServer({ server });
 
 const PORT = process.env.PORT || 3000;
 const APP_URL = process.env.RENDER_EXTERNAL_URL || 'https://trading-bot-lnf1.onrender.com';
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '9089609371:AAFyPRrun1KIafdD3J1ii2WmymjxJrTFR-E';
+
+// 2. Telegram Configuration with Persistent File Storage
+const CONFIG_FILE = path.join(process.cwd(), 'telegram_config.json');
+
+let BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '9089609371:AAFyPRrun1KIafdD3J1ii2WmymjxJrTFR-E';
 let CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
-// 2. Real Dime Portfolio Data (11 Assets) Extracted Directly from Screenshots
+// Load saved Telegram config if exists
+try {
+  if (fs.existsSync(CONFIG_FILE)) {
+    const raw = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const saved = JSON.parse(raw);
+    if (saved.botToken) BOT_TOKEN = saved.botToken;
+    if (saved.chatId) CHAT_ID = saved.chatId;
+    console.log(' Loaded persistent Telegram config for Chat ID:', CHAT_ID ? `${CHAT_ID.slice(0, 4)}...` : 'None');
+  }
+} catch (e) {
+  console.warn('Could not read telegram_config.json:', e.message);
+}
+
+function saveTelegramConfigToFile(token, cid) {
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify({ botToken: token, chatId: cid }, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Error saving telegram config file:', e.message);
+  }
+}
+
+// 3. Real Dime Portfolio Data (11 Assets) Extracted Directly from Screenshots
 let userHoldings = [
   {
     "id": "voo",
@@ -224,72 +251,111 @@ let userHoldings = [
   }
 ];
 
-// 3. M15 Asset Matrix & Real-time Signal Plans
+// 4. M15 Asset Matrix & Real-time Signal Plans
 const M15_ASSETS = {
-  'XAU/USD': {
-    label: 'XAU/USD (ทองคำ)',
-    tvSym: 'OANDA:XAUUSD',
-    action: 'BUY',
-    entry: 2785.40,
-    sl: 2776.00,
-    tp1: 2795.00,
-    tp2: 2805.00,
-    risk: 9.40,
-    rr: '1:2.1',
-    rsi: 62.5,
-    instruction: 'เปิดสถานะ BUY โซน $2,785.40 เมื่อแท่ง M15 จบเขียวเหนือ EMA50 ตั้ง SL $2,776.00 ถือทำกำไรเป้า TP1 และ TP2'
+  "XAU/USD": {
+    "label": "XAU/USD (ทองคำ)",
+    "tvSym": "OANDA:XAUUSD",
+    "action": "BUY",
+    "entry": 2785.4,
+    "sl": 2776.0,
+    "tp1": 2795.0,
+    "tp2": 2805.0,
+    "risk": 9.4,
+    "rr": "1:2.1",
+    "rsi": 62.5,
+    "instruction": "เปิดสถานะ BUY โซน $2,785.40 เมื่อแท่ง M15 จบเขียวเหนือ EMA50 ตั้ง SL $2,776.00 ถือทำกำไรเป้า TP1 และ TP2"
   },
-  'QQQ': {
-    label: 'NASDAQ (QQQ)',
-    tvSym: 'NASDAQ:QQQ',
-    action: 'BUY',
-    entry: 495.20,
-    sl: 489.50,
-    tp1: 502.00,
-    tp2: 508.50,
-    risk: 5.70,
-    rr: '1:2.3',
-    rsi: 54.0,
-    instruction: 'เปิดสถานะ BUY โซน $495.20 เมื่อดัชนียก Low บนแนวรับ $490.00 ตั้ง SL $489.50 ลุ้นทะลุ High เดิมที่ $508.50'
+  "QQQ": {
+    "label": "NASDAQ (QQQ)",
+    "tvSym": "NASDAQ:QQQ",
+    "action": "BUY",
+    "entry": 495.2,
+    "sl": 489.5,
+    "tp1": 502.0,
+    "tp2": 508.5,
+    "risk": 5.7,
+    "rr": "1:2.3",
+    "rsi": 54.0,
+    "instruction": "เปิดสถานะ BUY โซน $495.20 เมื่อดัชนียก Low บนแนวรับ $490.00 ตั้ง SL $489.50 ลุ้นทะลุ High เดิมที่ $508.50"
   },
-  'NVDA': {
-    label: 'NVDA (Nvidia)',
-    tvSym: 'NASDAQ:NVDA',
-    action: 'BUY',
-    entry: 141.20,
-    sl: 136.50,
-    tp1: 146.00,
-    tp2: 152.00,
-    risk: 4.70,
-    rr: '1:2.3',
-    rsi: 58.2,
-    instruction: 'เปิดสถานะ BUY โซน $141.20 ตามรอบแรงส่ง AI รับชิปประมวลผล ตั้ง SL $136.50 เป้าขายทำกำไรหลัก $152.00'
+  "NVDA": {
+    "label": "NVDA (Nvidia)",
+    "tvSym": "NASDAQ:NVDA",
+    "action": "BUY",
+    "entry": 141.2,
+    "sl": 136.5,
+    "tp1": 146.0,
+    "tp2": 152.0,
+    "risk": 4.7,
+    "rr": "1:2.3",
+    "rsi": 58.2,
+    "instruction": "เปิดสถานะ BUY โซน $141.20 ตามรอบแรงส่ง AI รับชิปประมวลผล ตั้ง SL $136.50 เป้าขายทำกำไรหลัก $152.00"
   },
-  'AAPL': {
-    label: 'AAPL (Apple)',
-    tvSym: 'NASDAQ:AAPL',
-    action: 'BUY',
-    entry: 230.10,
-    sl: 226.00,
-    tp1: 235.00,
-    tp2: 240.00,
-    risk: 4.10,
-    rr: '1:2.4',
-    rsi: 51.5,
-    instruction: 'เปิดสถานะ BUY โซน $230.10 เมื่อเกิดแท่งคอนเฟิร์มบนเส้น EMA200 ตั้ง SL $226.00 เป้าหมายทำกำไร $240.00'
+  "AAPL": {
+    "label": "AAPL (Apple)",
+    "tvSym": "NASDAQ:AAPL",
+    "action": "BUY",
+    "entry": 230.1,
+    "sl": 226.0,
+    "tp1": 235.0,
+    "tp2": 240.0,
+    "risk": 4.1,
+    "rr": "1:2.4",
+    "rsi": 51.5,
+    "instruction": "เปิดสถานะ BUY โซน $230.10 เมื่อเกิดแท่งคอนเฟิร์มบนเส้น EMA200 ตั้ง SL $226.00 เป้าหมายทำกำไร $240.00"
   },
-  'SPY': {
-    label: 'SPY (S&P 500 ETF)',
-    tvSym: 'AMEX:SPY',
-    action: 'BUY',
-    entry: 580.40,
-    sl: 574.00,
-    tp1: 588.00,
-    tp2: 595.00,
-    risk: 6.40,
-    rr: '1:2.3',
-    rsi: 55.8,
-    instruction: 'เปิดสถานะ BUY โซน $580.40 เกาะแนวโน้มใหญ่ขาขึ้นของตลาดสหรัฐฯ ตั้ง SL $574.00 เป้าทำกำไร $595.00'
+  "SPY": {
+    "label": "SPY (S&P 500 ETF)",
+    "tvSym": "AMEX:SPY",
+    "action": "BUY",
+    "entry": 580.4,
+    "sl": 574.0,
+    "tp1": 588.0,
+    "tp2": 595.0,
+    "risk": 6.4,
+    "rr": "1:2.3",
+    "rsi": 55.8,
+    "instruction": "เปิดสถานะ BUY โซน $580.40 เกาะแนวโน้มใหญ่ขาขึ้นของตลาดสหรัฐฯ ตั้ง SL $574.00 เป้าทำกำไร $595.00"
+  },
+  "VOO": {
+    "label": "VOO (S&P 500 Vanguard)",
+    "tvSym": "AMEX:VOO",
+    "action": "BUY",
+    "entry": 535.2,
+    "sl": 528.0,
+    "tp1": 544.0,
+    "tp2": 552.0,
+    "risk": 7.2,
+    "rr": "1:2.3",
+    "rsi": 56.4,
+    "instruction": "เปิดสถานะ BUY โซน $535.20 หรือทยอยสะสม DCA เมื่อย่อตัวใกล้แนวรับ EMA50 ลุ้นเป้าหมาย $552.00"
+  },
+  "TSLA": {
+    "label": "TSLA (Tesla)",
+    "tvSym": "NASDAQ:TSLA",
+    "action": "BUY",
+    "entry": 260.1,
+    "sl": 248.0,
+    "tp1": 275.0,
+    "tp2": 288.0,
+    "risk": 12.1,
+    "rr": "1:2.3",
+    "rsi": 39.8,
+    "instruction": "เปิดสถานะ BUY ดักเด้ง Oversold Bounce บริเวณแนวรับ $250.00 - $260.00 ตั้ง SL $248.00 เป้าทำกำไร $288.00"
+  },
+  "AMD": {
+    "label": "AMD (Advanced Micro)",
+    "tvSym": "NASDAQ:AMD",
+    "action": "BUY",
+    "entry": 156.4,
+    "sl": 149.0,
+    "tp1": 166.0,
+    "tp2": 175.0,
+    "risk": 7.4,
+    "rr": "1:2.5",
+    "rsi": 49.2,
+    "instruction": "เปิดสถานะ BUY โซน $156.40 ลุ้นเบรกเอาท์แนวต้านย่อย หลังเกิด Bullish Pinbar บนแนวรับก้นหลุมรอบเดือน"
   }
 };
 
@@ -326,28 +392,69 @@ const newsCache = [
 app.use(cors());
 app.use(express.json());
 
-// Telegram Messenger Helper
-async function sendTelegramMessage(text, isHtml = false) {
+// Escape HTML entities to prevent Telegram parse errors
+function escapeTgText(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// Telegram Messenger Helper with Fallback and Detailed Diagnostics
+async function sendTelegramMessage(text, isHtml = true) {
   if (!BOT_TOKEN || !CHAT_ID) {
-    console.log('[Telegram Skipped]: Missing BOT_TOKEN or CHAT_ID');
-    return false;
+    const missing = !BOT_TOKEN && !CHAT_ID ? 'Token และ Chat ID' : (!BOT_TOKEN ? 'Bot Token' : 'Chat ID');
+    return { 
+      ok: false, 
+      error: `ยังไม่ได้ระบุ ${missing} ในระบบ`, 
+      description: `กรุณากรอก Chat ID ในหน้าต่างตั้งค่า Telegram ด้านบน` 
+    };
   }
+
   try {
     const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-    const res = await fetch(url, {
+    let payload = {
+      chat_id: CHAT_ID,
+      text: text,
+      parse_mode: isHtml ? 'HTML' : undefined
+    };
+
+    let res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: text,
-        parse_mode: isHtml ? 'HTML' : undefined
-      })
+      body: JSON.stringify(payload)
     });
-    const d = await res.json();
-    return d.ok;
+    let d = await res.json();
+
+    // If HTML parsing failed on Telegram side, strip tags and send as plain text!
+    if (!d.ok && isHtml) {
+      console.warn('⚠️ Telegram HTML parse failed, falling back to plain text:', d.description);
+      const plainText = text.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&');
+      payload = { chat_id: CHAT_ID, text: plainText };
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      d = await res.json();
+    }
+
+    if (d.ok) {
+      return { ok: true, result: d.result };
+    } else {
+      let friendlyError = d.description || 'เกิดข้อผิดพลาดในการส่ง';
+      if (friendlyError.includes('chat not found')) {
+        friendlyError = 'ไม่พบแชทนี้ (Chat not found) — คุณต้องกดเปิดบอทใน Telegram แล้วกดปุ่ม /start ก่อน 1 ครั้ง';
+      } else if (friendlyError.includes('bot was blocked')) {
+        friendlyError = 'บอทถูกบล็อกโดยผู้ใช้ — กรุณาปลดบล็อกบอทใน Telegram';
+      } else if (friendlyError.includes('Unauthorized')) {
+        friendlyError = 'Bot Token ไม่ถูกต้อง — กรุณาตรวจสอบ Token จาก @BotFather';
+      }
+      return { ok: false, error: friendlyError, rawDescription: d.description };
+    }
   } catch (e) {
-    console.error('Telegram error:', e.message);
-    return false;
+    console.error('Telegram fetch error:', e.message);
+    return { ok: false, error: 'เชื่อมต่อเครือข่าย Telegram ไม่สำเร็จ: ' + e.message };
   }
 }
 
@@ -361,12 +468,56 @@ function broadcast(msg) {
   });
 }
 
-// 4. API Routes
+// 5. API Routes
 app.get('/api/signals', (req, res) => res.json(signalHistory));
 app.get('/api/my-portfolio', (req, res) => res.json(userHoldings));
 app.get('/api/broad-market', (req, res) => res.json(broadMarketCache));
 app.get('/api/news', (req, res) => res.json(newsCache));
 app.get('/api/ping', (req, res) => res.send('pong'));
+
+// Get Telegram Status
+app.get('/api/telegram-status', (req, res) => {
+  res.json({
+    hasBotToken: !!BOT_TOKEN,
+    botTokenMasked: BOT_TOKEN ? `${BOT_TOKEN.slice(0, 5)}...${BOT_TOKEN.slice(-4)}` : '',
+    hasChatId: !!CHAT_ID,
+    chatId: CHAT_ID || ''
+  });
+});
+
+// Save Telegram Config
+app.post('/api/set-telegram-config', (req, res) => {
+  const token = (req.body?.botToken || '').trim() || BOT_TOKEN;
+  const cid = (req.body?.chatId || '').trim();
+
+  if (cid) {
+    BOT_TOKEN = token;
+    CHAT_ID = cid;
+    saveTelegramConfigToFile(BOT_TOKEN, CHAT_ID);
+    res.json({ ok: true, botTokenMasked: `${BOT_TOKEN.slice(0, 5)}...`, chatId: CHAT_ID });
+  } else {
+    res.status(400).json({ ok: false, error: 'กรุณากรอก Chat ID ให้ถูกต้อง' });
+  }
+});
+
+// Test Telegram Connection
+app.post('/api/test-telegram', async (req, res) => {
+  const customToken = (req.body?.botToken || '').trim();
+  const customChatId = (req.body?.chatId || '').trim();
+
+  if (customToken) BOT_TOKEN = customToken;
+  if (customChatId) CHAT_ID = customChatId;
+
+  if (customChatId) {
+    saveTelegramConfigToFile(BOT_TOKEN, CHAT_ID);
+  }
+
+  const now = new Date().toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
+  const testMsg = `🔔 <b>[ทดสอบการเชื่อมต่อ Telegram Bot]</b>\n──────────────────\n✅ เชื่อมต่อระบบเทรด M15 สำเร็จ!\n⏰ เวลาทดสอบ: ${now} น.\n📱 Chat ID: <code>${CHAT_ID}</code>\nบอทพร้อมรับสัญญาณแจ้งเตือนทุกรูปแบบแล้วครับ 🚀`;
+
+  const result = await sendTelegramMessage(testMsg, true);
+  res.json(result);
+});
 
 // TradingView Webhook Receiver
 app.post('/api/webhook/tradingview', async (req, res) => {
@@ -402,7 +553,7 @@ app.post('/api/webhook/tradingview', async (req, res) => {
 
   broadcast({ type: 'new_signal', signal: sig });
 
-  const msg = `⚡ <b>[M15 SIGNAL ALERT]</b>\nสินทรัพย์: <b>${sig.asset}</b>\nคำสั่ง: <b>${sig.action}</b>\n🎯 จุดเข้า: <code>${sig.entry}</code>\n🛑 Stop Loss: <code>${sig.sl}</code>\n🏆 Take Profit: <code>${sig.tp1}</code> / <code>${sig.tp2}</code>\n⏰ เวลา: ${sig.time}`;
+  const msg = `⚡ <b>[M15 SIGNAL ALERT]</b>\nสินทรัพย์: <b>${escapeTgText(sig.asset)}</b>\nคำสั่ง: <b>${sig.action}</b>\n🎯 จุดเข้า: <code>${sig.entry}</code>\n🛑 Stop Loss: <code>${sig.sl}</code>\n🏆 Take Profit: <code>${sig.tp1}</code> / <code>${sig.tp2}</code>\n⏰ เวลา: ${sig.time}`;
   await sendTelegramMessage(msg, true);
 
   res.json({ ok: true, signal: sig });
@@ -444,41 +595,36 @@ app.post('/api/simulate-signal', async (req, res) => {
 
   broadcast({ type: 'new_signal', signal: simSig });
 
-  const msg = `🎮 <b>[SIMULATION TEST ALERT]</b>\nสินทรัพย์: <b>${simSig.asset}</b>\nคำสั่ง: <b>${simSig.action}</b>\n🎯 จุดเข้า: <code>$${simSig.entry}</code>\n🛑 Stop Loss: <code>$${simSig.sl}</code>\n🏆 TP1 / TP2: <code>$${simSig.tp1}</code> / <code>$${simSig.tp2}</code>`;
-  const tgSent = await sendTelegramMessage(msg, true);
+  const msg = `🎮 <b>[SIMULATION TEST ALERT]</b>\nสินทรัพย์: <b>${escapeTgText(simSig.asset)}</b>\nคำสั่ง: <b>${simSig.action}</b>\n🎯 จุดเข้า: <code>$${simSig.entry}</code>\n🛑 Stop Loss: <code>$${simSig.sl}</code>\n🏆 TP1 / TP2: <code>$${simSig.tp1}</code> / <code>$${simSig.tp2}</code>`;
+  const tgResult = await sendTelegramMessage(msg, true);
 
-  res.json({ ok: true, signal: simSig, telegramSent: tgSent, hasChatId: !!CHAT_ID });
-});
-
-// Set Telegram Chat ID
-app.post('/api/set-telegram-chat-id', (req, res) => {
-  const cid = (req.body?.chatId || '').trim();
-  if (cid) {
-    CHAT_ID = cid;
-    res.json({ ok: true, chatId: CHAT_ID });
-  } else {
-    res.status(400).json({ ok: false, error: 'Empty Chat ID' });
-  }
+  res.json({ 
+    ok: true, 
+    signal: simSig, 
+    telegramSent: tgResult.ok, 
+    hasChatId: !!CHAT_ID, 
+    telegramError: tgResult.error || null 
+  });
 });
 
 // Telegram Broadcast Endpoints
 app.post('/api/send-news-telegram', async (req, res) => {
   let msg = '📰 <b>สรุปรายงานข่าวด่วน & ปัจจัยกระทบตลาด</b>\n──────────────────\n';
   newsCache.forEach((n, i) => {
-    msg += `<b>${i + 1}. ${n.headline}</b>\n📌 ผลกระทบ: <b>${n.impactBadge}</b>\n💡 วิเคราะห์: ${n.impactReason}\n🎯 สินทรัพย์: <code>${n.affectedAssets}</code>\n\n`;
+    msg += `<b>${i + 1}. ${escapeTgText(n.headline)}</b>\n📌 ผลกระทบ: <b>${escapeTgText(n.impactBadge)}</b>\n💡 วิเคราะห์: ${escapeTgText(n.impactReason)}\n🎯 สินทรัพย์: <code>${escapeTgText(n.affectedAssets)}</code>\n\n`;
   });
-  const ok = await sendTelegramMessage(msg, true);
-  res.json({ ok, hasChatId: !!CHAT_ID, previewText: msg });
+  const result = await sendTelegramMessage(msg, true);
+  res.json({ ...result, hasChatId: !!CHAT_ID, previewText: msg });
 });
 
 app.post('/api/send-forecast-telegram', async (req, res) => {
   let msg = '💼 <b>สรุปผลทำนายกราฟและแผนกลยุทธ์พอร์ตของคุณ</b>\n──────────────────\n';
   userHoldings.slice(0, 5).forEach((h) => {
     const pnlSign = h.pnlPercent >= 0 ? '+' : '';
-    msg += `• <b>${h.symbol}</b> (${h.name})\n   สถานะ: <b>${pnlSign}${h.pnlPercent}%</b> | มูลค่า: ฿${h.currentValueTHB.toLocaleString()}\n   คำแนะนำ: ${h.advice}\n\n`;
+    msg += `• <b>${h.symbol}</b> (${escapeTgText(h.name)})\n   สถานะ: <b>${pnlSign}${h.pnlPercent}%</b> | มูลค่า: ฿${h.currentValueTHB.toLocaleString()}\n   คำแนะนำ: ${escapeTgText(h.advice)}\n\n`;
   });
-  const ok = await sendTelegramMessage(msg, true);
-  res.json({ ok, hasChatId: !!CHAT_ID, previewText: msg });
+  const result = await sendTelegramMessage(msg, true);
+  res.json({ ...result, hasChatId: !!CHAT_ID, previewText: msg });
 });
 
 app.post('/api/send-broad-telegram', async (req, res) => {
@@ -486,20 +632,26 @@ app.post('/api/send-broad-telegram', async (req, res) => {
   let msg = '🌟 <b>สรุปอันดับหุ้นน่าช้อนซื้อที่สุดในตลาด (สแกนก้นหลุม)</b>\n──────────────────\n';
   top4.forEach((item, i) => {
     const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : '#' + (i + 1)));
-    msg += medal + ` <b>${item.symbol}</b> (คะแนน ${item.score}/100)\n   📌 สถานะ: <b>${item.badgeText}</b> | ราคา: <code>$${item.price}</code>\n   🛒 โซนเข้าซื้อ: <code>$${item.buyZone}</code> | 🎯 เป้า: <code>$${item.tp2}</code> (+~${item.upside}%)\n\n`;
+    msg += `${medal} <b>${item.symbol}</b> (คะแนน ${item.score}/100)\n   📌 สถานะ: <b>${escapeTgText(item.badgeText)}</b> | ราคา: <code>$${item.price}</code>\n   🛒 โซนเข้าซื้อ: <code>$${item.buyZone}</code> | 🎯 เป้า: <code>$${item.tp2}</code> (+~${item.upside}%)\n\n`;
   });
-  const ok = await sendTelegramMessage(msg, true);
-  res.json({ ok, hasChatId: !!CHAT_ID, previewText: msg });
+  const result = await sendTelegramMessage(msg, true);
+  res.json({ ...result, hasChatId: !!CHAT_ID, previewText: msg });
 });
 
-// 5. Pre-rendered HTML Page
+// 6. Pre-rendered HTML Page
 const HTML_PAGE = `<!DOCTYPE html>
 <html lang="th" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>M15 Pro Trading Terminal & Dime! Portfolio Assistant</title>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  
+  <!-- TradingView Official Widget Library for 100% Reliable Chart Switching -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  
   <script>
     tailwind.config = {
       darkMode: "class",
@@ -526,7 +678,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     .sub-panel.active { display: block !important; }
     .copy-card, .master-tab-btn, .subtab-btn { cursor: pointer; }
     .copy-card:hover { transform: translateY(-2px); border-color: #38bdf8; }
-    .asset-card.active { border-color: #f59e0b !important; background-color: rgba(245, 158, 11, 0.08) !important; }
+    .asset-card.active { border-color: #f59e0b !important; background-color: rgba(245, 158, 11, 0.12) !important; }
     @keyframes pulse-subtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     .pulse-live { animation: pulse-subtle 2s infinite; }
   </style>
@@ -582,6 +734,12 @@ const HTML_PAGE = `<!DOCTYPE html>
       </div>
 
       <div class="flex items-center gap-2.5">
+        <!-- Telegram Connection Status & Setup Button -->
+        <button onclick="openTelegramModal('ตั้งค่าและทดสอบการเชื่อมต่อ Telegram', '')" id="btn-tg-status" class="bg-sky-950/70 hover:bg-sky-900/80 text-sky-300 border border-sky-500/40 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold transition">
+          <span class="text-sm">✈️</span>
+          <span id="tg-status-text">ตั้งค่า Telegram</span>
+        </button>
+
         <!-- Global Clock -->
         <div class="hidden sm:flex items-center gap-2 text-xs font-mono bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
           <span id="session-bkk" class="text-slate-300">🇹🇭 ไทย: --:--:--</span>
@@ -645,42 +803,61 @@ const HTML_PAGE = `<!DOCTYPE html>
         </button>
       </div>
 
-      <!-- Asset Selector Cards (Click to change chart & active plan) -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-        <div id="card-asset-XAU/USD" onclick="setAsset('OANDA:XAUUSD','XAU/USD')" class="asset-card active copy-card bg-slate-900 border-2 border-amber-500 rounded-xl p-3 transition">
-          <div class="flex items-center justify-between"><span class="font-bold text-xs text-amber-400">🥇 XAU/USD (ทองคำ)</span><span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">● ตลาดปิด</span></div>
-          <div class="flex items-baseline justify-between mt-1"><span class="text-base font-black font-mono text-white">$2,785.40</span><span class="text-[10px] text-slate-400">RSI 62.5</span></div>
+      <!-- Asset Selector Cards (8 Assets) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div id="card-asset-XAU/USD" onclick="setAsset('OANDA:XAUUSD','XAU/USD')" class="asset-card active copy-card bg-slate-900 border-2 border-amber-500 rounded-xl p-2.5 transition">
+          <div class="flex items-center justify-between"><span class="font-bold text-xs text-amber-400">🥇 ทองคำ</span><span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">ปิด</span></div>
+          <div class="mt-1"><span class="text-sm font-black font-mono text-white block">$2,785.40</span><span class="text-[9px] text-slate-400">XAU/USD</span></div>
         </div>
-        <div id="card-asset-QQQ" onclick="setAsset('NASDAQ:QQQ','QQQ')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-3 transition">
-          <div class="flex items-center justify-between"><span class="font-bold text-xs text-sky-400">📊 NASDAQ (QQQ)</span><span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">● ตลาดปิด</span></div>
-          <div class="flex items-baseline justify-between mt-1"><span class="text-base font-black font-mono text-white">$495.20</span><span class="text-[10px] text-slate-400">RSI 54.0</span></div>
+        <div id="card-asset-QQQ" onclick="setAsset('NASDAQ:QQQ','QQQ')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-2.5 transition">
+          <div class="flex items-center justify-between"><span class="font-bold text-xs text-sky-400">📊 QQQ</span><span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">ปิด</span></div>
+          <div class="mt-1"><span class="text-sm font-black font-mono text-white block">$495.20</span><span class="text-[9px] text-slate-400">NASDAQ 100</span></div>
         </div>
-        <div id="card-asset-NVDA" onclick="setAsset('NASDAQ:NVDA','NVDA')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-3 transition">
-          <div class="flex items-center justify-between"><span class="font-bold text-xs text-emerald-400">⚡ NVDA (Nvidia)</span><span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">● ตลาดปิด</span></div>
-          <div class="flex items-baseline justify-between mt-1"><span class="text-base font-black font-mono text-white">$141.20</span><span class="text-[10px] text-slate-400">RSI 58.2</span></div>
+        <div id="card-asset-NVDA" onclick="setAsset('NASDAQ:NVDA','NVDA')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-2.5 transition">
+          <div class="flex items-center justify-between"><span class="font-bold text-xs text-emerald-400">⚡ NVDA</span><span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">ปิด</span></div>
+          <div class="mt-1"><span class="text-sm font-black font-mono text-white block">$141.20</span><span class="text-[9px] text-slate-400">Nvidia AI</span></div>
         </div>
-        <div id="card-asset-AAPL" onclick="setAsset('NASDAQ:AAPL','AAPL')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-3 transition">
-          <div class="flex items-center justify-between"><span class="font-bold text-xs text-rose-400">🍎 AAPL (Apple)</span><span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">● ตลาดปิด</span></div>
-          <div class="flex items-baseline justify-between mt-1"><span class="text-base font-black font-mono text-white">$230.10</span><span class="text-[10px] text-slate-400">RSI 51.5</span></div>
+        <div id="card-asset-AAPL" onclick="setAsset('NASDAQ:AAPL','AAPL')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-2.5 transition">
+          <div class="flex items-center justify-between"><span class="font-bold text-xs text-rose-400">🍎 AAPL</span><span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">ปิด</span></div>
+          <div class="mt-1"><span class="text-sm font-black font-mono text-white block">$230.10</span><span class="text-[9px] text-slate-400">Apple</span></div>
         </div>
-        <div id="card-asset-SPY" onclick="setAsset('AMEX:SPY','SPY')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-3 transition">
-          <div class="flex items-center justify-between"><span class="font-bold text-xs text-purple-400">📈 SPY (S&P 500)</span><span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">● ตลาดปิด</span></div>
-          <div class="flex items-baseline justify-between mt-1"><span class="text-base font-black font-mono text-white">$580.40</span><span class="text-[10px] text-slate-400">RSI 55.8</span></div>
+        <div id="card-asset-SPY" onclick="setAsset('AMEX:SPY','SPY')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-2.5 transition">
+          <div class="flex items-center justify-between"><span class="font-bold text-xs text-purple-400">📈 SPY</span><span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">ปิด</span></div>
+          <div class="mt-1"><span class="text-sm font-black font-mono text-white block">$580.40</span><span class="text-[9px] text-slate-400">S&P 500</span></div>
+        </div>
+        <div id="card-asset-VOO" onclick="setAsset('AMEX:VOO','VOO')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-2.5 transition">
+          <div class="flex items-center justify-between"><span class="font-bold text-xs text-amber-300">🏛️ VOO</span><span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">ปิด</span></div>
+          <div class="mt-1"><span class="text-sm font-black font-mono text-white block">$535.20</span><span class="text-[9px] text-slate-400">พอร์ตหลัก</span></div>
+        </div>
+        <div id="card-asset-TSLA" onclick="setAsset('NASDAQ:TSLA','TSLA')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-2.5 transition">
+          <div class="flex items-center justify-between"><span class="font-bold text-xs text-red-400">🚗 TSLA</span><span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">ปิด</span></div>
+          <div class="mt-1"><span class="text-sm font-black font-mono text-white block">$260.10</span><span class="text-[9px] text-slate-400">Tesla EV</span></div>
+        </div>
+        <div id="card-asset-AMD" onclick="setAsset('NASDAQ:AMD','AMD')" class="asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-2.5 transition">
+          <div class="flex items-center justify-between"><span class="font-bold text-xs text-teal-400">💻 AMD</span><span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">ปิด</span></div>
+          <div class="mt-1"><span class="text-sm font-black font-mono text-white block">$156.40</span><span class="text-[9px] text-slate-400">Semi AI</span></div>
         </div>
       </div>
 
-      <!-- Main Trading Screen: Left Chart / Right Signal Card -->
+      <!-- Main Trading Screen: Left Dynamic Chart Container / Right Signal Card -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <!-- Live Chart Container -->
+        <!-- Live Chart Container (Guaranteed 100% Reload on Symbol Change) -->
         <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <h3 id="chart-asset-title" class="font-bold text-sm text-white flex items-center gap-2">
               ชาร์ตสด XAU/USD (TradingView M15)
             </h3>
-            <span class="text-xs text-slate-400 font-mono">15m Candles • Dark Pro</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-400 font-mono">15m Candles • Dark Pro</span>
+              <button onclick="refreshCurrentChart()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700 transition">
+                🔄 รีเฟรชชาร์ต
+              </button>
+            </div>
           </div>
-          <div class="w-full h-[480px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800">
-            <iframe id="tv-frame" src="https://s.tradingview.com/widgetembed/?symbol=OANDA%3AXAUUSD&interval=15&theme=dark&timezone=Asia%2FBangkok" class="w-full h-full border-0"></iframe>
+          
+          <!-- Dedicated Container for Chart Rendering -->
+          <div id="tv-chart-container" class="w-full h-[480px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800 relative">
+            <div id="tv-widget-box" class="w-full h-full"></div>
           </div>
         </div>
 
@@ -1233,32 +1410,65 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
     </div>
   </main>
 
-  <!-- Telegram Message Modal (Preview & Direct Copy) -->
+  <!-- Telegram Setup & Diagnostics Modal -->
   <div id="telegram-modal" style="display: none !important; pointer-events: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div class="flex items-center gap-2">
           <span class="text-xl">✈️</span>
-          <h3 id="tg-modal-title" class="font-bold text-white text-base">ตัวอย่างข้อความแจ้งเตือน Telegram</h3>
+          <h3 id="tg-modal-title" class="font-bold text-white text-base">ตั้งค่าและทดสอบการเชื่อมต่อ Telegram Bot</h3>
         </div>
         <button onclick="closeTelegramModal()" class="text-slate-400 hover:text-white p-1 text-lg font-bold">✕</button>
       </div>
 
-      <div id="tg-chatid-alert" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-300 hidden">
-        ℹ️ คุณยังไม่ได้ระบุ <b>TELEGRAM_CHAT_ID</b> บน Render ระบบจึงไม่สามารถส่งเข้าบอทอัตโนมัติได้ คุณสามารถคัดลอกข้อความด้านล่าง หรือตั้งค่า Chat ID ในกล่องด้านล่างนี้ได้ทันที:
-        <div class="flex items-center gap-2 mt-2">
-          <input type="text" id="inp-chat-id" placeholder="ใส่ Chat ID ของคุณ เช่น 123456789" class="bg-slate-950 border border-slate-700 px-3 py-1 rounded-lg text-white font-mono flex-1 text-xs">
-          <button onclick="saveChatId()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1 rounded-lg text-xs">บันทึก</button>
+      <!-- Live Connection Status Alert -->
+      <div id="tg-connection-status-box" class="p-3.5 rounded-xl border text-xs leading-relaxed">
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-slate-200">สถานะปัจจุบัน:</span>
+          <span id="tg-conn-badge" class="px-2 py-0.5 rounded font-bold text-[11px] bg-slate-800 text-slate-400">กำลังตรวจสอบ...</span>
+        </div>
+        <p id="tg-conn-detail" class="text-slate-400 mt-1 text-[11px]">ระบบกำลังโหลดการตั้งค่าล่าสุด...</p>
+      </div>
+
+      <!-- Quick Setup Guide -->
+      <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2 text-xs">
+        <span class="font-bold text-amber-400 block">💡 วิธีรับ Chat ID ง่ายที่สุดใน 5 วินาที:</span>
+        <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
+          <li>เปิด Telegram แล้วกดค้นหาบอท <b><a href="https://t.me/userinfobot" target="_blank" class="text-sky-400 underline">@userinfobot</a></b> แล้วกด <b>/start</b></li>
+          <li>บอทจะตอบกลับด้วยตัวเลข <b>Id</b> ของคุณ (เช่น <code>123456789</code>) ให้นำตัวเลขนั้นมาใส่ในช่องด้านล่าง</li>
+          <li><b>ข้อสำคัญ:</b> ให้ค้นหาบอทแจ้งเตือนของคุณ แล้วกด <b>/start</b> ที่บอทนั้นด้วย เพื่ออนุญาตให้บอทส่งข้อความหาคุณได้</li>
+        </ol>
+      </div>
+
+      <!-- Input Fields -->
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">Telegram Bot Token:</label>
+          <input type="text" id="inp-bot-token" placeholder="ใส่ Bot Token จาก @BotFather" class="w-full bg-slate-950 border border-slate-700 px-3 py-2 rounded-xl text-white font-mono text-xs">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">Telegram Chat ID (ตัวเลขของคุณ หรือ ID กลุ่ม):</label>
+          <div class="flex gap-2">
+            <input type="text" id="inp-chat-id" placeholder="ตัวอย่าง: 123456789 หรือ -100xxxxxxx" class="flex-1 bg-slate-950 border border-slate-700 px-3 py-2 rounded-xl text-white font-mono text-xs">
+            <button onclick="saveAndTestTelegram()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow flex items-center gap-1 shrink-0">
+              🧪 ทดสอบส่งทันที
+            </button>
+          </div>
         </div>
       </div>
 
-      <pre id="tg-preview-text" class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 whitespace-pre-wrap max-h-72 overflow-y-auto leading-relaxed"></pre>
+      <!-- Message Preview Box -->
+      <div class="space-y-1.5">
+        <span class="text-[11px] font-bold text-slate-400 block">ข้อความล่าสุด / ตัวอย่างข้อความ:</span>
+        <pre id="tg-preview-text" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] font-mono text-emerald-400 whitespace-pre-wrap max-h-48 overflow-y-auto leading-relaxed"></pre>
+      </div>
 
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="copyTgPreview()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow">
+      <!-- Footer Buttons -->
+      <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+        <button onclick="copyTgPreview()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition shadow">
           📋 คัดลอกข้อความ
         </button>
-        <button onclick="closeTelegramModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-2 rounded-xl text-xs transition">
+        <button onclick="closeTelegramModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-1.5 rounded-xl text-xs transition">
           ปิดหน้าต่าง
         </button>
       </div>
@@ -1268,12 +1478,14 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
   <!-- Client-side Interactive Script -->
   <script>
     // Asset Data Matrix
-    const ASSETS_DATA = {"XAU/USD":{"label":"XAU/USD (ทองคำ)","tvSym":"OANDA:XAUUSD","action":"BUY","entry":2785.40,"sl":2776.00,"tp1":2795.00,"tp2":2805.00,"risk":9.40,"rr":"1:2.1","rsi":62.5,"instruction":"เปิดสถานะ BUY โซน ,785.40 เมื่อแท่ง M15 จบเขียวเหนือ EMA50 ตั้ง SL ,776.00 ถือทำกำไรเป้า TP1 และ TP2"},"QQQ":{"label":"NASDAQ (QQQ)","tvSym":"NASDAQ:QQQ","action":"BUY","entry":495.20,"sl":489.50,"tp1":502.00,"tp2":508.50,"risk":5.70,"rr":"1:2.3","rsi":54.0,"instruction":"เปิดสถานะ BUY โซน 95.20 เมื่อดัชนียก Low บนแนวรับ 90.00 ตั้ง SL 89.50 ลุ้นทะลุ High เดิมที่ 08.50"},"NVDA":{"label":"NVDA (Nvidia)","tvSym":"NASDAQ:NVDA","action":"BUY","entry":141.20,"sl":136.50,"tp1":146.00,"tp2":152.00,"risk":4.70,"rr":"1:2.3","rsi":58.2,"instruction":"เปิดสถานะ BUY โซน 41.20 ตามรอบแรงส่ง AI รับชิปประมวลผล ตั้ง SL 36.50 เป้าขายทำกำไรหลัก 52.00"},"AAPL":{"label":"AAPL (Apple)","tvSym":"NASDAQ:AAPL","action":"BUY","entry":230.10,"sl":226.00,"tp1":235.00,"tp2":240.00,"risk":4.10,"rr":"1:2.4","rsi":51.5,"instruction":"เปิดสถานะ BUY โซน 30.10 เมื่อเกิดแท่งคอนเฟิร์มบนเส้น EMA200 ตั้ง SL 26.00 เป้าหมายทำกำไร 40.00"},"SPY":{"label":"SPY (S&P 500 ETF)","tvSym":"AMEX:SPY","action":"BUY","entry":580.40,"sl":574.00,"tp1":588.00,"tp2":595.00,"risk":6.40,"rr":"1:2.3","rsi":55.8,"instruction":"เปิดสถานะ BUY โซน 80.40 เกาะแนวโน้มใหญ่ขาขึ้นของตลาดสหรัฐฯ ตั้ง SL 74.00 เป้าทำกำไร 95.00"}};
+    const ASSETS_DATA = {"XAU/USD": {"label": "XAU/USD (\u0e17\u0e2d\u0e07\u0e04\u0e33)", "tvSym": "OANDA:XAUUSD", "action": "BUY", "entry": 2785.4, "sl": 2776.0, "tp1": 2795.0, "tp2": 2805.0, "risk": 9.4, "rr": "1:2.1", "rsi": 62.5, "instruction": "\u0e40\u0e1b\u0e34\u0e14\u0e2a\u0e16\u0e32\u0e19\u0e30 BUY \u0e42\u0e0b\u0e19 $2,785.40 \u0e40\u0e21\u0e37\u0e48\u0e2d\u0e41\u0e17\u0e48\u0e07 M15 \u0e08\u0e1a\u0e40\u0e02\u0e35\u0e22\u0e27\u0e40\u0e2b\u0e19\u0e37\u0e2d EMA50 \u0e15\u0e31\u0e49\u0e07 SL $2,776.00 \u0e16\u0e37\u0e2d\u0e17\u0e33\u0e01\u0e33\u0e44\u0e23\u0e40\u0e1b\u0e49\u0e32 TP1 \u0e41\u0e25\u0e30 TP2"}, "QQQ": {"label": "NASDAQ (QQQ)", "tvSym": "NASDAQ:QQQ", "action": "BUY", "entry": 495.2, "sl": 489.5, "tp1": 502.0, "tp2": 508.5, "risk": 5.7, "rr": "1:2.3", "rsi": 54.0, "instruction": "\u0e40\u0e1b\u0e34\u0e14\u0e2a\u0e16\u0e32\u0e19\u0e30 BUY \u0e42\u0e0b\u0e19 $495.20 \u0e40\u0e21\u0e37\u0e48\u0e2d\u0e14\u0e31\u0e0a\u0e19\u0e35\u0e22\u0e01 Low \u0e1a\u0e19\u0e41\u0e19\u0e27\u0e23\u0e31\u0e1a $490.00 \u0e15\u0e31\u0e49\u0e07 SL $489.50 \u0e25\u0e38\u0e49\u0e19\u0e17\u0e30\u0e25\u0e38 High \u0e40\u0e14\u0e34\u0e21\u0e17\u0e35\u0e48 $508.50"}, "NVDA": {"label": "NVDA (Nvidia)", "tvSym": "NASDAQ:NVDA", "action": "BUY", "entry": 141.2, "sl": 136.5, "tp1": 146.0, "tp2": 152.0, "risk": 4.7, "rr": "1:2.3", "rsi": 58.2, "instruction": "\u0e40\u0e1b\u0e34\u0e14\u0e2a\u0e16\u0e32\u0e19\u0e30 BUY \u0e42\u0e0b\u0e19 $141.20 \u0e15\u0e32\u0e21\u0e23\u0e2d\u0e1a\u0e41\u0e23\u0e07\u0e2a\u0e48\u0e07 AI \u0e23\u0e31\u0e1a\u0e0a\u0e34\u0e1b\u0e1b\u0e23\u0e30\u0e21\u0e27\u0e25\u0e1c\u0e25 \u0e15\u0e31\u0e49\u0e07 SL $136.50 \u0e40\u0e1b\u0e49\u0e32\u0e02\u0e32\u0e22\u0e17\u0e33\u0e01\u0e33\u0e44\u0e23\u0e2b\u0e25\u0e31\u0e01 $152.00"}, "AAPL": {"label": "AAPL (Apple)", "tvSym": "NASDAQ:AAPL", "action": "BUY", "entry": 230.1, "sl": 226.0, "tp1": 235.0, "tp2": 240.0, "risk": 4.1, "rr": "1:2.4", "rsi": 51.5, "instruction": "\u0e40\u0e1b\u0e34\u0e14\u0e2a\u0e16\u0e32\u0e19\u0e30 BUY \u0e42\u0e0b\u0e19 $230.10 \u0e40\u0e21\u0e37\u0e48\u0e2d\u0e40\u0e01\u0e34\u0e14\u0e41\u0e17\u0e48\u0e07\u0e04\u0e2d\u0e19\u0e40\u0e1f\u0e34\u0e23\u0e4c\u0e21\u0e1a\u0e19\u0e40\u0e2a\u0e49\u0e19 EMA200 \u0e15\u0e31\u0e49\u0e07 SL $226.00 \u0e40\u0e1b\u0e49\u0e32\u0e2b\u0e21\u0e32\u0e22\u0e17\u0e33\u0e01\u0e33\u0e44\u0e23 $240.00"}, "SPY": {"label": "SPY (S&P 500 ETF)", "tvSym": "AMEX:SPY", "action": "BUY", "entry": 580.4, "sl": 574.0, "tp1": 588.0, "tp2": 595.0, "risk": 6.4, "rr": "1:2.3", "rsi": 55.8, "instruction": "\u0e40\u0e1b\u0e34\u0e14\u0e2a\u0e16\u0e32\u0e19\u0e30 BUY \u0e42\u0e0b\u0e19 $580.40 \u0e40\u0e01\u0e32\u0e30\u0e41\u0e19\u0e27\u0e42\u0e19\u0e49\u0e21\u0e43\u0e2b\u0e0d\u0e48\u0e02\u0e32\u0e02\u0e36\u0e49\u0e19\u0e02\u0e2d\u0e07\u0e15\u0e25\u0e32\u0e14\u0e2a\u0e2b\u0e23\u0e31\u0e10\u0e2f \u0e15\u0e31\u0e49\u0e07 SL $574.00 \u0e40\u0e1b\u0e49\u0e32\u0e17\u0e33\u0e01\u0e33\u0e44\u0e23 $595.00"}, "VOO": {"label": "VOO (S&P 500 Vanguard)", "tvSym": "AMEX:VOO", "action": "BUY", "entry": 535.2, "sl": 528.0, "tp1": 544.0, "tp2": 552.0, "risk": 7.2, "rr": "1:2.3", "rsi": 56.4, "instruction": "\u0e40\u0e1b\u0e34\u0e14\u0e2a\u0e16\u0e32\u0e19\u0e30 BUY \u0e42\u0e0b\u0e19 $535.20 \u0e2b\u0e23\u0e37\u0e2d\u0e17\u0e22\u0e2d\u0e22\u0e2a\u0e30\u0e2a\u0e21 DCA \u0e40\u0e21\u0e37\u0e48\u0e2d\u0e22\u0e48\u0e2d\u0e15\u0e31\u0e27\u0e43\u0e01\u0e25\u0e49\u0e41\u0e19\u0e27\u0e23\u0e31\u0e1a EMA50 \u0e25\u0e38\u0e49\u0e19\u0e40\u0e1b\u0e49\u0e32\u0e2b\u0e21\u0e32\u0e22 $552.00"}, "TSLA": {"label": "TSLA (Tesla)", "tvSym": "NASDAQ:TSLA", "action": "BUY", "entry": 260.1, "sl": 248.0, "tp1": 275.0, "tp2": 288.0, "risk": 12.1, "rr": "1:2.3", "rsi": 39.8, "instruction": "\u0e40\u0e1b\u0e34\u0e14\u0e2a\u0e16\u0e32\u0e19\u0e30 BUY \u0e14\u0e31\u0e01\u0e40\u0e14\u0e49\u0e07 Oversold Bounce \u0e1a\u0e23\u0e34\u0e40\u0e27\u0e13\u0e41\u0e19\u0e27\u0e23\u0e31\u0e1a $250.00 - $260.00 \u0e15\u0e31\u0e49\u0e07 SL $248.00 \u0e40\u0e1b\u0e49\u0e32\u0e17\u0e33\u0e01\u0e33\u0e44\u0e23 $288.00"}, "AMD": {"label": "AMD (Advanced Micro)", "tvSym": "NASDAQ:AMD", "action": "BUY", "entry": 156.4, "sl": 149.0, "tp1": 166.0, "tp2": 175.0, "risk": 7.4, "rr": "1:2.5", "rsi": 49.2, "instruction": "\u0e40\u0e1b\u0e34\u0e14\u0e2a\u0e16\u0e32\u0e19\u0e30 BUY \u0e42\u0e0b\u0e19 $156.40 \u0e25\u0e38\u0e49\u0e19\u0e40\u0e1a\u0e23\u0e01\u0e40\u0e2d\u0e32\u0e17\u0e4c\u0e41\u0e19\u0e27\u0e15\u0e49\u0e32\u0e19\u0e22\u0e48\u0e2d\u0e22 \u0e2b\u0e25\u0e31\u0e07\u0e40\u0e01\u0e34\u0e14 Bullish Pinbar \u0e1a\u0e19\u0e41\u0e19\u0e27\u0e23\u0e31\u0e1a\u0e01\u0e49\u0e19\u0e2b\u0e25\u0e38\u0e21\u0e23\u0e2d\u0e1a\u0e40\u0e14\u0e37\u0e2d\u0e19"}};
 
     let currentSelectedSymbol = "XAU/USD";
     let soundEnabled = true;
     let audioCtx = null;
     let ws = null;
+    let currentChatId = "";
+    let currentBotToken = "";
 
     // Pleasant Sound Synthesizer via Web Audio API
     function playChime(isBuy) {
@@ -1316,10 +1528,10 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
          "bg-slate-900/95 border-slate-700 text-slate-200");
       toast.innerHTML = (type === "success" ? "🟢 " : type === "danger" ? "🔴 " : "⚡ ") + message;
       container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3500);
+      setTimeout(() => toast.remove(), 4000);
     }
 
-    // Fallback Clipboard Copy Engine (Works on all mobile, desktop & webview)
+    // Fallback Clipboard Copy Engine (Works on all devices)
     function safeCopy(text, successMsg) {
       if (!text || text === "--") return;
       if (navigator.clipboard && window.isSecureContext) {
@@ -1372,6 +1584,60 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       safeCopy(txt, "คัดลอกข้อความ Telegram ทั้งหมดแล้ว!");
     }
 
+    // 100% Reliable TradingView Chart Rendering Engine
+    function renderTradingViewChart(tvSym) {
+      const box = document.getElementById("tv-chart-container");
+      if (!box) return;
+      
+      // Destroy previous chart completely
+      box.innerHTML = '';
+
+      // Try official TradingView widget first
+      if (typeof TradingView !== 'undefined' && TradingView.widget) {
+        const innerDiv = document.createElement('div');
+        innerDiv.id = 'tv-widget-box';
+        innerDiv.className = 'w-full h-full';
+        box.appendChild(innerDiv);
+        try {
+          new TradingView.widget({
+            "autosize": true,
+            "symbol": tvSym,
+            "interval": "15",
+            "timezone": "Asia/Bangkok",
+            "theme": "dark",
+            "style": "1",
+            "locale": "th_TH",
+            "toolbar_bg": "#070a12",
+            "enable_publishing": false,
+            "hide_top_toolbar": false,
+            "hide_legend": false,
+            "save_image": false,
+            "studies": [
+              "EMA@tv-basicstudies",
+              "RSI@tv-basicstudies"
+            ],
+            "container_id": "tv-widget-box"
+          });
+          return;
+        } catch(e) {
+          console.warn('TradingView.widget error, using clean iframe fallback:', e);
+        }
+      }
+
+      // Clean Iframe fallback with unique timestamp to bypass browser cache
+      const iframe = document.createElement('iframe');
+      iframe.id = 'tv-frame';
+      iframe.className = 'w-full h-full border-0';
+      iframe.src = 'https://s.tradingview.com/widgetembed/?frameElementId=tradingview_m15_' + Date.now() + '&symbol=' + encodeURIComponent(tvSym) + '&interval=15&hidesidetoolbar=0&symboledit=1&saveimage=0&toolbarbg=070a12&theme=dark&style=1&timezone=Asia%2FBangkok&_t=' + Date.now();
+      box.appendChild(iframe);
+    }
+
+    function refreshCurrentChart() {
+      const asset = ASSETS_DATA[currentSelectedSymbol] || ASSETS_DATA['XAU/USD'];
+      renderTradingViewChart(asset.tvSym);
+      showToast("รีเฟรชชาร์ต " + asset.label + " แล้ว", "info");
+    }
+
     // Asset Selection Engine: Updates Card Highlight, Chart & Signal Plan
     function setAsset(tvSym, label) {
       currentSelectedSymbol = label;
@@ -1379,15 +1645,15 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
 
       // 1. Highlight clicked asset card
       document.querySelectorAll('.asset-card').forEach(c => {
-        c.className = "asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-3 transition";
+        c.className = "asset-card copy-card bg-slate-900 border border-slate-800 rounded-xl p-2.5 transition";
       });
       const activeCard = document.getElementById('card-asset-' + label);
       if (activeCard) {
-        activeCard.className = "asset-card active copy-card bg-slate-900 border-2 border-amber-500 rounded-xl p-3 transition";
+        activeCard.className = "asset-card active copy-card bg-slate-900 border-2 border-amber-500 rounded-xl p-2.5 transition";
       }
 
-      // 2. Update TradingView iframe
-      document.getElementById("tv-frame").src = "https://s.tradingview.com/widgetembed/?symbol=" + encodeURIComponent(tvSym) + "&interval=15&theme=dark&timezone=Asia%2FBangkok";
+      // 2. Render Fresh TradingView Chart (Fixed!)
+      renderTradingViewChart(tvSym);
       document.getElementById("chart-asset-title").textContent = "ชาร์ตสด " + asset.label + " (TradingView M15)";
 
       // 3. Update Active Signal Card
@@ -1409,7 +1675,7 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       document.getElementById("card-instruction").textContent = asset.instruction;
 
       playChime(asset.action === 'BUY');
-      showToast("เลือกสินทรัพย์ " + asset.label + " แล้ว", "info");
+      showToast("สลับดูกราฟและแผนของ " + asset.label + " สำเร็จ!", "info");
     }
 
     // Toggle Sound
@@ -1421,15 +1687,54 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       if (soundEnabled) playChime(true);
     }
 
-    // Telegram Modal Management
-    function openTelegramModal(title, text, hasChatId = true) {
-      document.getElementById("tg-modal-title").textContent = title;
-      document.getElementById("tg-preview-text").textContent = text;
-      const alertBox = document.getElementById("tg-chatid-alert");
-      if (alertBox) {
-        if (!hasChatId) alertBox.classList.remove("hidden");
-        else alertBox.classList.add("hidden");
+    // Telegram Modal Management & Status Check
+    async function checkTelegramStatus() {
+      try {
+        const r = await fetch("/api/telegram-status");
+        const d = await r.json();
+        currentChatId = d.chatId || localStorage.getItem('tg_chat_id') || "";
+        currentBotToken = d.botTokenMasked || "";
+
+        const statusBtn = document.getElementById("btn-tg-status");
+        const statusText = document.getElementById("tg-status-text");
+        const badge = document.getElementById("tg-conn-badge");
+        const detail = document.getElementById("tg-conn-detail");
+        const inpChat = document.getElementById("inp-chat-id");
+        const inpBot = document.getElementById("inp-bot-token");
+
+        if (inpChat && currentChatId) inpChat.value = currentChatId;
+        if (inpBot && d.hasBotToken) inpBot.placeholder = "มี Token แล้ว (" + d.botTokenMasked + ")";
+
+        if (d.hasChatId) {
+          if (statusText) statusText.textContent = "Telegram: พร้อมส่ง (" + d.chatId.slice(0, 4) + "...)";
+          if (badge) {
+            badge.className = "px-2 py-0.5 rounded font-bold text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+            badge.textContent = "🟢 เชื่อมต่อแล้ว";
+          }
+          if (detail) detail.textContent = "พร้อมส่งสัญญาณเข้า Chat ID: " + d.chatId;
+        } else {
+          if (statusText) statusText.textContent = "⚠️ ตั้งค่า Telegram Chat ID";
+          if (badge) {
+            badge.className = "px-2 py-0.5 rounded font-bold text-[11px] bg-amber-500/20 text-amber-400 border border-amber-500/30";
+            badge.textContent = "⚠️ ยังไม่ได้ระบุ Chat ID";
+          }
+          if (detail) detail.textContent = "คุณยังไม่ได้ระบุ Chat ID กรุณาใส่ Chat ID ด้านล่างเพื่อรับแจ้งเตือน";
+        }
+      } catch(e) {}
+    }
+
+    function openTelegramModal(title, text) {
+      document.getElementById("tg-modal-title").textContent = title || "ตั้งค่าและทดสอบการเชื่อมต่อ Telegram";
+      if (text) {
+        document.getElementById("tg-preview-text").textContent = text;
+      } else {
+        const asset = ASSETS_DATA[currentSelectedSymbol] || ASSETS_DATA['XAU/USD'];
+        document.getElementById("tg-preview-text").textContent = 
+          "⚡ [M15 SIGNAL ALERT]\nสินทรัพย์: " + asset.label + "\nคำสั่ง: " + asset.action + 
+          "\n──────────────────\n🎯 จุดเข้า: $" + asset.entry + "\n🛑 Stop Loss: $" + asset.sl + 
+          "\n🏆 TP1: $" + asset.tp1 + " | TP2: $" + asset.tp2 + "\n💡 แผน: " + asset.instruction;
       }
+      checkTelegramStatus();
       const modal = document.getElementById("telegram-modal");
       if (modal) {
         modal.style.setProperty("display", "flex", "important");
@@ -1448,24 +1753,40 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
     function openTelegramPreview() {
       const asset = ASSETS_DATA[currentSelectedSymbol] || ASSETS_DATA['XAU/USD'];
       const txt = "⚡ [M15 SIGNAL ALERT]\nสินทรัพย์: " + asset.label + "\nคำสั่ง: " + asset.action + "\n──────────────────\n🎯 จุดเข้า: $" + asset.entry + "\n🛑 Stop Loss: $" + asset.sl + "\n🏆 TP1: $" + asset.tp1 + " | TP2: $" + asset.tp2 + "\n💡 แผน: " + asset.instruction;
-      openTelegramModal("ตัวอย่างแจ้งเตือนสัญญาณเทรด Telegram", txt, true);
+      openTelegramModal("ตัวอย่างแจ้งเตือนสัญญาณเทรด Telegram", txt);
     }
 
-    async function saveChatId() {
+    async function saveAndTestTelegram() {
       const cid = document.getElementById("inp-chat-id").value.trim();
-      if (!cid) return showToast("กรุณากรอก Chat ID", "danger");
+      const token = document.getElementById("inp-bot-token").value.trim();
+
+      if (!cid) {
+        showToast("กรุณากรอก Chat ID ก่อนทดสอบ", "danger");
+        return;
+      }
+
+      showToast("กำลังทดสอบส่งข้อความเข้า Telegram...", "info");
+      localStorage.setItem('tg_chat_id', cid);
+
       try {
-        const r = await fetch("/api/set-telegram-chat-id", {
+        const r = await fetch("/api/test-telegram", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chatId: cid })
+          body: JSON.stringify({ chatId: cid, botToken: token })
         });
         const d = await r.json();
+
         if (d.ok) {
-          showToast("บันทึก Chat ID เรียบร้อย!", "success");
-          document.getElementById("tg-chatid-alert").classList.add("hidden");
+          showToast("ส่งข้อความทดสอบเข้า Telegram สำเร็จ! เช็คในแอปได้เลย", "success");
+          checkTelegramStatus();
+        } else {
+          showToast(d.error || "ส่งไม่สำเร็จ", "danger");
+          const detail = document.getElementById("tg-conn-detail");
+          if (detail) detail.innerHTML = "<span class=\"text-rose-400 font-bold\">🔴 ผิดพลาด:</span> " + (d.error || "");
         }
-      } catch(e) {}
+      } catch(e) {
+        showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้: " + e.message, "danger");
+      }
     }
 
     // Quick Simulation Trigger
@@ -1481,7 +1802,11 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
         const d = await r.json();
         if (d.ok && d.signal) {
           addSignalToTable(d.signal);
-          showToast("จำลองสัญญาณ " + action + " " + assetKey + " สำเร็จ!", "success");
+          if (d.telegramSent) {
+            showToast("จำลองสัญญาณและส่งเข้า Telegram สำเร็จ!", "success");
+          } else {
+            showToast("จำลองสัญญาณสำเร็จ (แต่ยังไม่ได้ตั้งค่า Telegram หรือส่งไม่ผ่าน: " + (d.telegramError || "ไม่มี Chat ID") + ")", "info");
+          }
         }
       } catch(e) {
         showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "danger");
@@ -1506,7 +1831,7 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
       tbody.insertBefore(tr, tbody.firstChild);
     }
 
-    // Telegram Dispatch Helpers
+    // Telegram Dispatch Helpers with Live Feedback
     async function sendNewsTelegram() {
       showToast("กำลังส่งสรุปข่าวเข้า Telegram...", "info");
       try {
@@ -1515,9 +1840,12 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
         if (d.ok) {
           showToast("ส่งรายงานข่าวเข้า Telegram สำเร็จ!", "success");
         } else {
-          openTelegramModal("สรุปข่าวเศรษฐกิจ (ยังไม่ได้ตั้งค่า Telegram Bot)", d.previewText, false);
+          showToast(d.error || "ส่งไม่สำเร็จ", "danger");
+          openTelegramModal("สรุปข่าวเศรษฐกิจ", d.previewText);
         }
-      } catch(e) {}
+      } catch(e) {
+        showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "danger");
+      }
     }
 
     async function sendForecastTelegram() {
@@ -1528,9 +1856,12 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
         if (d.ok) {
           showToast("ส่งผลทำนายกราฟเข้า Telegram สำเร็จ!", "success");
         } else {
-          openTelegramModal("สรุปทำนายกราฟพอร์ต (ยังไม่ได้ตั้งค่า Telegram Bot)", d.previewText, false);
+          showToast(d.error || "ส่งไม่สำเร็จ", "danger");
+          openTelegramModal("สรุปทำนายกราฟพอร์ต", d.previewText);
         }
-      } catch(e) {}
+      } catch(e) {
+        showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "danger");
+      }
     }
 
     async function sendBroadTelegram() {
@@ -1541,9 +1872,12 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
         if (d.ok) {
           showToast("ส่ง 4 หุ้นเด่นเข้า Telegram เรียบร้อย!", "success");
         } else {
-          openTelegramModal("4 หุ้นก้นหลุมรอบเดือน (ยังไม่ได้ตั้งค่า Telegram Bot)", d.previewText, false);
+          showToast(d.error || "ส่งไม่สำเร็จ", "danger");
+          openTelegramModal("4 หุ้นก้นหลุมรอบเดือน", d.previewText);
         }
-      } catch(e) {}
+      } catch(e) {
+        showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "danger");
+      }
     }
 
     function calcDCA() {
@@ -1639,10 +1973,17 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
     }
     initWebSocket();
 
+    // Initialize Chart and Check Telegram on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTradingViewChart('OANDA:XAUUSD');
+      checkTelegramStatus();
+    });
+
     // Attach to Window Scope
     window.switchMasterTab = switchMasterTab;
     window.switchSubTab = switchSubTab;
     window.setAsset = setAsset;
+    window.refreshCurrentChart = refreshCurrentChart;
     window.copyText = copyText;
     window.copyPineScript = copyPineScript;
     window.copyWebhookUrl = copyWebhookUrl;
@@ -1650,10 +1991,10 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
     window.openTelegramModal = openTelegramModal;
     window.closeTelegramModal = closeTelegramModal;
     window.openTelegramPreview = openTelegramPreview;
+    window.saveAndTestTelegram = saveAndTestTelegram;
     window.toggleSound = toggleSound;
     window.simTrigger = simTrigger;
     window.calcDCA = calcDCA;
-    window.saveChatId = saveChatId;
     window.sendNewsTelegram = sendNewsTelegram;
     window.sendForecastTelegram = sendForecastTelegram;
     window.sendBroadTelegram = sendBroadTelegram;
@@ -1667,7 +2008,7 @@ alertcondition(sellSignal, title="M15 SELL Alert", message='{"ticker":"{{ticker}
 </body>
 </html>`;
 
-// 6. Root and Single-Page Navigation Routes
+// 7. Root and Single-Page Navigation Routes
 app.get('/', (req, res) => res.send(HTML_PAGE));
 app.get('/portfolio', (req, res) => res.send(HTML_PAGE));
 app.get('/port', (req, res) => res.send(HTML_PAGE));
